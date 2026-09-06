@@ -3937,7 +3937,7 @@ void CGameProcMain::InitUI()
 	m_pUIMsgDlg->MoveOffset(0, -1);
 
 	m_pUIStateBarAndMiniMap->Init(s_pUIMgr);
-	m_pUIStateBarAndMiniMap->LoadFromFile(pTbl->szStateBar);
+	m_pUIStateBarAndMiniMap->LoadFromFile(OpenKOUIFile("StateBar", pTbl->szStateBar));
 	m_pUIStateBarAndMiniMap->SetStyle(UISTYLE_FOCUS_UNABLE | UISTYLE_HIDE_UNABLE);
 #ifdef _DEBUG
 	m_pUIStateBarAndMiniMap->SetPos(0, 70); // 디버그 정보 표시때문에 조금 내린다....
@@ -3962,7 +3962,7 @@ void CGameProcMain::InitUI()
 	m_pUIVar->m_pPageQuest->SetVisibleWithNoSound(false);
 
 	m_pUITargetBar->Init(s_pUIMgr);
-	m_pUITargetBar->LoadFromFile(pTbl->szTargetBar);
+	m_pUITargetBar->LoadFromFile(OpenKOUIFile("TargetBar", pTbl->szTargetBar));
 	m_pUITargetBar->SetStyle(UISTYLE_FOCUS_UNABLE | UISTYLE_HIDE_UNABLE);
 	rc = m_pUITargetBar->GetRegion();
 	m_pUITargetBar->SetPos((iW - (rc.right - rc.left)) / 2, 0);
@@ -4114,9 +4114,19 @@ void CGameProcMain::InitUI()
 	// default ui pos ..	해상도가 변경되면.. 상대 위치를 구해야 한다.. by ecli666
 	rc = m_pUIStateBarAndMiniMap->GetRegion();
 	m_pUIHotKeyDlg->Init(s_pUIMgr);
-	m_pUIHotKeyDlg->LoadFromFile(pTbl->szHotKey);
+	const std::string szHotKeyUIF = OpenKOUIFile("HotKey", pTbl->szHotKey);
+	m_pUIHotKeyDlg->LoadFromFile(szHotKeyUIF);
 	m_pUIHotKeyDlg->SetStyle(UISTYLE_HIDE_UNABLE);
-	UIPostData_Read(UI_POST_WND_HOTKEY, m_pUIHotKeyDlg, rc.left, rc.bottom);
+	if (szHotKeyUIF != pTbl->szHotKey)
+	{
+		// OpenKO HUD: hotkey bari varsayilan olarak alt ortada
+		RECT rcHK = m_pUIHotKeyDlg->GetRegion();
+		UIPostData_Read(UI_POST_WND_HOTKEY, m_pUIHotKeyDlg, (iW - (rcHK.right - rcHK.left)) / 2, iH - (rcHK.bottom - rcHK.top) - 8);
+	}
+	else
+	{
+		UIPostData_Read(UI_POST_WND_HOTKEY, m_pUIHotKeyDlg, rc.left, rc.bottom);
+	}
 	m_pUIHotKeyDlg->SetVisibleWithNoSound(true); // 무조건 보인다!!!
 	m_pUIHotKeyDlg->InitIconWnd(UIWND_HOTKEY);
 	m_pUIHotKeyDlg->SetUIType(UI_TYPE_ICON_MANAGER);

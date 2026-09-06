@@ -117,7 +117,7 @@ class UIBase:
     snd_open: str = ""
     snd_close: str = ""
     name: str = ""                        # CN3BaseFileAccess m_szName (genelde bos)
-    children: list = field(default_factory=list)
+    children: list = field(default_factory=list)   # alttan uste (son eklenen en ustte cizilir)
 
     ui_type = UI_TYPE_BASE
 
@@ -162,7 +162,9 @@ class UIBase:
     def _write_base(self, f: BinaryIO) -> None:
         _w_str(f, self.name)                         # CN3BaseFileAccess
         f.write(struct.pack("<hh", len(self.children), 0))  # 1264+: int16 count, int16 0
-        for c in self.children:
+        # Motor cocuklari TERS sirayla cizer (rbegin -> rend): dosyadaki ILK cocuk en USTTE.
+        # Bellekte "ekleme sirasi = alttan uste" tutulur, dosyaya ters yazilir.
+        for c in reversed(self.children):
             _w_u32(f, c.ui_type)
             c.write(f)
         _w_str(f, self.id)
@@ -199,6 +201,7 @@ class UIBase:
             c = cls()
             c.read(f)
             self.children.append(c)
+        self.children.reverse()  # dosya: ustten alta -> bellek: alttan uste
         self.id = _r_str(f)
         self.region = _r_rect(f)
         self.movable = _r_rect(f)

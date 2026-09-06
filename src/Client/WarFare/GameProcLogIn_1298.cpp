@@ -11,8 +11,6 @@
 #include "PacketDef.h"
 #include "text_resources.h"
 
-#include <filesystem>
-
 #include <N3Base/N3SndObj.h>
 #include <N3Base/N3SndMgr.h>
 
@@ -53,18 +51,10 @@ void CGameProcLogIn_1298::Init()
 	m_pUILogIn->Init(s_pUIMgr);
 
 	// OpenKO: modern login (tools/uitool/build_login_a.py ile uretilir).
-	// Dosya varsa ui.tbl'deki klasik intro yerine o kullanilir.
-	constexpr const char* OPENKO_LOGIN_UIF = "UI\\Login_OpenKO.uif";
-	if (std::filesystem::exists(CN3Base::PathGet() + OPENKO_LOGIN_UIF))
-	{
-		m_pUILogIn->LoadFromFile(OPENKO_LOGIN_UIF);
-	}
-	else
-	{
-		__TABLE_UI_RESRC* pTbl = s_pTbl_UI.Find(iRandomNation);
-		if (pTbl != nullptr)
-			m_pUILogIn->LoadFromFile(pTbl->szLoginIntro);
-	}
+	// UI\Login_OpenKO.uif varsa ui.tbl'deki klasik intro yerine o kullanilir.
+	__TABLE_UI_RESRC* pTbl = s_pTbl_UI.Find(iRandomNation);
+	if (pTbl != nullptr)
+		m_pUILogIn->LoadFromFile(OpenKOUIFile("Login", pTbl->szLoginIntro));
 
 	m_pUILogIn->SetPosCenter();
 

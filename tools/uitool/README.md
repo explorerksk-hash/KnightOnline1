@@ -19,3 +19,12 @@ python build_login_a.py --out P:\Projeler\openko\assets\Client
 yoksa ui.tbl'deki klasik intro'yu yükler. Dosyayı silmek eski ekrana döndürür.
 
 Yazı tipleri `fonts/` altında (Cinzel, Noto Sans — SIL OFL).
+
+## HUD
+
+`build_hud_a.py` — durum çubuğu + mini harita (`StateBar_OpenKO.uif`), hedef çubuğu
+(`TargetBar_OpenKO.uif`) ve hotkey barı (`HotKey_OpenKO.uif`) + `openko_hud_atlas.dxt`.
+İstemci `CGameBase::OpenKOUIFile()` ile `UI\<Ad>_OpenKO.uif` varsa onu yükler.
+Sohbet/komut barı şimdilik orijinal dosyalarda (bkz. yol haritası).
+
+Not: motor çocukları ters sırada çizer; `n3ui` bunu gizler — `add()` sırası = alttan üste.

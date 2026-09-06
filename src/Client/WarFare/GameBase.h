@@ -13,6 +13,9 @@ class CGameBase : public CN3Base
 #define ACT_WORLD s_pWorldMgr->GetActiveWorld()
 
 public:
+	// OpenKO: assets\UI altinda "<name>_OpenKO.uif" varsa onu, yoksa ui.tbl'deki varsayilani dondurur.
+	static std::string OpenKOUIFile(const char* szOpenKOName, const std::string& szDefault);
+
 	static CN3TableBase<__TABLE_TEXTS> s_pTbl_Texts;                             // Main string resources
 	static CN3TableBase<__TABLE_ZONE> s_pTbl_Zones;                              // Zone data (filenames and settings)
 	static CN3TableBase<__TABLE_UI_RESRC> s_pTbl_UI;                             // Maps UI filenames per-nation

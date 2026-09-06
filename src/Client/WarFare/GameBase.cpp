@@ -5,6 +5,8 @@
 #include "StdAfx.h"
 #include "text_resources.h"
 #include "GameBase.h"
+
+#include <filesystem>
 #include "N3WorldManager.h"
 #include "PlayerOtherMgr.h"
 #include "PlayerMySelf.h"
@@ -727,4 +729,12 @@ bool CGameBase::IsItemClassWeapon(e_ItemClass itemClass)
 e_ZoneAbilityType CGameBase::GetCurrentZoneAbilityType()
 {
 	return s_pPlayer->m_InfoExt.eZoneAbilityType;
+}
+
+std::string CGameBase::OpenKOUIFile(const char* szOpenKOName, const std::string& szDefault)
+{
+	std::string szRel = std::string("UI\\") + szOpenKOName + "_OpenKO.uif";
+	if (std::filesystem::exists(CN3Base::PathGet() + szRel))
+		return szRel;
+	return szDefault;
 }
