@@ -247,6 +247,8 @@ bool CUILogIn_1298::Load(File& file)
 
 void CUILogIn_1298::PositionGroups()
 {
+	PositionOpenKODecor();
+
 	if (m_pGroup_LogIn != nullptr)
 		m_pGroup_LogIn->SetPosCenter();
 
@@ -261,6 +263,47 @@ void CUILogIn_1298::PositionGroups()
 
 	if (m_pGroup_Notice_3 != nullptr)
 		m_pGroup_Notice_3->SetPosCenter();
+}
+
+// OpenKO modern login (Login_OpenKO.uif): 1024x768 tabanli yerlesimi gercek
+// cozunurluge uyarlar. Klasik uif'te bu ID'ler yoksa hicbir sey yapmaz.
+void CUILogIn_1298::PositionOpenKODecor()
+{
+	const int iVpW = static_cast<int>(s_CameraData.vp.Width);
+	const int iVpH = static_cast<int>(s_CameraData.vp.Height);
+
+	// arka plan tum ekrana gerilir
+	if (CN3UIBase* pBg = GetChildByID("img_bg"))
+	{
+		RECT rc = { 0, 0, iVpW, iVpH };
+		pBg->SetRegion(rc);
+	}
+
+	auto centerX = [iVpW](CN3UIBase* pUI, int iY)
+	{
+		if (pUI != nullptr)
+			pUI->SetPos((iVpW - pUI->GetWidth()) / 2, iY);
+	};
+
+	// baslik: ust ortada, panelin ustunde kalacak sekilde
+	const int iTop = std::max(24, (iVpH - 768) / 2 + 84);
+	CN3UIBase* pTitle    = GetChildByID("img_title");
+	CN3UIBase* pSubtitle = GetChildByID("img_subtitle");
+	centerX(pTitle, iTop);
+	if (pTitle != nullptr)
+		centerX(pSubtitle, iTop + pTitle->GetHeight() + 10);
+
+	// amblemler: paneli ortalayan iki yanda
+	if (CN3UIBase* pL = GetChildByID("img_emblem_l"))
+		pL->SetPos(std::max(16, iVpW / 2 - 210 - pL->GetWidth() - 46), (iVpH - pL->GetHeight()) / 2 - 24);
+	if (CN3UIBase* pR = GetChildByID("img_emblem_r"))
+		pR->SetPos(std::min(iVpW - 16 - pR->GetWidth(), iVpW / 2 + 210 + 46), (iVpH - pR->GetHeight()) / 2 - 24);
+
+	if (CN3UIBase* pFooter = GetChildByID("img_footer"))
+		pFooter->SetPos(32, iVpH - 40);
+
+	if (m_pStr_Premium != nullptr)
+		centerX(m_pStr_Premium, iVpH - 70);
 }
 
 void CUILogIn_1298::AccountIDGet(std::string& szID)

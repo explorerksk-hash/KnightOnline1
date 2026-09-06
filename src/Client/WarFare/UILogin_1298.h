@@ -109,6 +109,7 @@ public:
 	void FocusToID();
 	bool Load(File& file) override;
 	void PositionGroups();
+	void PositionOpenKODecor();
 
 	bool ReceiveMessage(CN3UIBase* pSender, uint32_t dwMsg) override; // 메시지를 받는다.. 보낸놈, msg
 
