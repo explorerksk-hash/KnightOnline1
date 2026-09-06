@@ -84,6 +84,14 @@ char* SharedMemoryBlock::Open(const std::string& name)
 	return nullptr;
 }
 
+size_t SharedMemoryBlock::GetSize() const
+{
+	if (_mappedRegion == nullptr)
+		return 0;
+
+	return _mappedRegion->get_size();
+}
+
 void SharedMemoryBlock::Release()
 {
 	if (_created)

@@ -15,6 +15,11 @@ public:
 	char* OpenOrCreate(const std::string& name, uint32_t totalSize);
 	char* Open(const std::string& name);
 	void Release();
+
+	/// Size of the currently mapped region in bytes (0 if nothing is mapped).
+	size_t GetSize() const;
+	/// Name of the currently opened block (empty if nothing is opened).
+	const std::string& GetName() const { return _name; }
 	~SharedMemoryBlock();
 
 private:

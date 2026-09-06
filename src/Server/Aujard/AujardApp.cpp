@@ -41,8 +41,9 @@ AujardApp::AujardApp(logger::Logger& logger) :
 	_heartbeatCheckThread = std::make_unique<TimerThread>(
 		40s, std::bind(&AujardApp::CheckHeartbeat, this));
 
+	// TEMP(openko-bugfix #1): 5min -> 30s to reproduce the ConCurrentUserCount crash quickly. Revert after fix.
 	_concurrentCheckThread = std::make_unique<TimerThread>(
-		5min, std::bind(&AujardApp::ConCurrentUserCount, this));
+		30s, std::bind(&AujardApp::ConCurrentUserCount, this));
 
 	_packetCheckThread = std::make_unique<TimerThread>(
 		2min, std::bind(&AujardApp::WritePacketLog, this));
@@ -213,7 +214,22 @@ bool AujardApp::InitSharedMemory()
 	if (memory == nullptr)
 		return false;
 
-	spdlog::info("AujardApp::InitSharedMemory: shared memory loaded successfully");
+	// Ebenezer creates KNIGHT_DB in two steps (create, then truncate to its final size).
+	// If we manage to open it in between, the mapping is too small and every later access
+	// (e.g. ConCurrentUserCount) faults. Verify the size and retry on the next tick if short.
+	constexpr size_t requiredSize = static_cast<size_t>(MAX_USER) * ALLOCATED_USER_DATA_BLOCK;
+	const size_t mappedSize       = _userDataBlock.GetSize();
+	if (mappedSize < requiredSize)
+	{
+		spdlog::warn("AujardApp::InitSharedMemory: KNIGHT_DB is not fully allocated yet "
+					 "[mapped={} required={}], will retry",
+			mappedSize, requiredSize);
+		_userDataBlock.Release();
+		return false;
+	}
+
+	spdlog::info("AujardApp::InitSharedMemory: shared memory loaded successfully [size={}]",
+		mappedSize);
 
 	_dbAgent.UserData.reserve(MAX_USER);
 
@@ -660,6 +676,12 @@ void AujardApp::AllSaveRoutine()
 void AujardApp::ConCurrentUserCount()
 {
 	int usercount = 0;
+
+	// DIAG(openko-bugfix #1): log the mapping we are about to walk so an access violation
+	// here can be matched against the mapped range.
+	spdlog::debug("AujardApp::ConCurrentUserCount: walking KNIGHT_DB [entries={} base={} mappedSize={}]",
+		_dbAgent.UserData.size(), static_cast<const void*>(_dbAgent.UserData.empty() ? nullptr : _dbAgent.UserData[0]),
+		_userDataBlock.GetSize());
 
 	for (int userId = 0; userId < MAX_USER; userId++)
 	{
