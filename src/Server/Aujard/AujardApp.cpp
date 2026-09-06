@@ -41,9 +41,8 @@ AujardApp::AujardApp(logger::Logger& logger) :
 	_heartbeatCheckThread = std::make_unique<TimerThread>(
 		40s, std::bind(&AujardApp::CheckHeartbeat, this));
 
-	// TEMP(openko-bugfix #1): 5min -> 30s to reproduce the ConCurrentUserCount crash quickly. Revert after fix.
 	_concurrentCheckThread = std::make_unique<TimerThread>(
-		30s, std::bind(&AujardApp::ConCurrentUserCount, this));
+		5min, std::bind(&AujardApp::ConCurrentUserCount, this));
 
 	_packetCheckThread = std::make_unique<TimerThread>(
 		2min, std::bind(&AujardApp::WritePacketLog, this));
