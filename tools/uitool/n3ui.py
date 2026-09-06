@@ -364,6 +364,47 @@ class UIProgress(UIBase):
     ui_type = UI_TYPE_PROGRESS
 
 
+@dataclass
+class UIScrollBar(UIBase):
+    """N3UIScrollBar: ek veri yok; child butonlar reserved ile (0 up,1 down,2 middle...)."""
+    ui_type = UI_TYPE_SCROLLBAR
+
+
+@dataclass
+class UITrackBar(UIBase):
+    """N3UITrackBar: ek veri yok; child imgeler reserved ile."""
+    ui_type = UI_TYPE_TRACKBAR
+
+
+@dataclass
+class UIList(UIBase):
+    font: str = "Segoe UI"
+    font_height: int = 12
+    color: int = 0xFFFFFFFF
+    bold: bool = False
+    italic: bool = False
+    ui_type = UI_TYPE_LIST
+
+    def _write_extra(self, f):
+        _w_str(f, self.font)
+        if self.font:
+            _w_u32(f, self.font_height)
+            _w_u32(f, self.color)
+            _w_u32(f, 1 if self.bold else 0)
+            _w_u32(f, 1 if self.italic else 0)
+
+    def _read_extra(self, f):
+        self.font = _r_str(f)
+        if self.font:
+            self.font_height = _r_u32(f)
+            self.color = _r_u32(f)
+            self.bold = bool(_r_u32(f))
+            self.italic = bool(_r_u32(f))
+
+    def describe(self):
+        return f"font={self.font!r}/{self.font_height} color=0x{self.color:08X}"
+
+
 _TYPE_MAP = {
     UI_TYPE_BASE: UIBase,
     UI_TYPE_IMAGE: UIImage,
@@ -373,6 +414,9 @@ _TYPE_MAP = {
     UI_TYPE_EDIT: UIEdit,
     UI_TYPE_AREA: UIArea,
     UI_TYPE_PROGRESS: UIProgress,
+    UI_TYPE_SCROLLBAR: UIScrollBar,
+    UI_TYPE_TRACKBAR: UITrackBar,
+    UI_TYPE_LIST: UIList,
 }
 
 
