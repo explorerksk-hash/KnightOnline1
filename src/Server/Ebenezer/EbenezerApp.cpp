@@ -3496,7 +3496,9 @@ void EbenezerApp::GameTimeTick()
 	UpdateGameTime();
 
 	// AIServer Socket Alive Check Routine
-	if (m_bFirstServerFlag)
+	// OpenKO (bug #2): AIServer acilista yoksa da her tick yeniden denenir; boylece
+	// sunucu acilis sirasi (AIServer once/sonra) fark etmez. Ilk baglanti "yeni",
+	// daha once baglanmis olan "yeniden baglanti" olarak bildirilir.
 	{
 		int count = 0;
 		for (int i = 0; i < MAX_AI_SOCKET; i++)
@@ -3512,10 +3514,10 @@ void EbenezerApp::GameTimeTick()
 			}
 
 			lock.unlock();
-			AISocketConnect(i, true);
+			AISocketConnect(i, m_bFirstServerFlag);
 		}
 
-		if (count <= 0)
+		if (m_bFirstServerFlag && count <= 0)
 			DeleteAllNpcList();
 	}
 	// sungyong~ 2002.05.23
