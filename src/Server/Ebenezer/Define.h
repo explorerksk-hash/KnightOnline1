@@ -388,4 +388,8 @@ struct ItemPair
 
 } // namespace Ebenezer
 
+// OpenKO anti-cheat: true -> ihlalde baglanti kesilir (hareket ihlalinde hesap BLOCK olur),
+// false -> yalnizca loglanir (gozlem modu). Ilk haftalarda false tutup loglari izleyin.
+inline constexpr bool OPENKO_ANTICHEAT_KICK = false;
+
 #endif // SERVER_EBENEZER_DEFINE_H

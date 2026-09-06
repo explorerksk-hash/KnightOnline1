@@ -127,6 +127,9 @@
     <ClInclude Include="UdpSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CheatGuard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="User.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -14,6 +14,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ranges.h>
 
+#include <algorithm>
+#include <cmath>
 #include <unordered_set>
 
 namespace Ebenezer
@@ -43,6 +45,9 @@ std::string_view CUser::GetImplName() const
 void CUser::Initialize()
 {
 	m_pMain = EbenezerApp::instance();
+
+	m_moveGuard   = openko::CMoveGuard();
+	m_packetGuard = openko::CPacketGuard();
 
 	if (_regionBuffer == nullptr)
 		_regionBuffer = new _REGION_BUFFER();
@@ -505,6 +510,22 @@ void CUser::Parsing(int len, char* pData)
 
 	spdlog::trace("User::Parsing: userId={} charId={} command={:02X} len={}", GetSocketID(),
 		m_pUserData->m_id, command, len);
+
+	// OpenKO anti-cheat: paket seli
+	{
+		const openko::GuardVerdict verdict = m_packetGuard.OnPacket(openko::GuardClock::now());
+		if (verdict != openko::GuardVerdict::Ok)
+		{
+			spdlog::warn("User::Parsing: packet flood [charId={} socketId={} command={:02X} strikes={} verdict={}]",
+				m_pUserData->m_id, _socketId, command, m_packetGuard.Strikes(), static_cast<int>(verdict));
+
+			if (verdict == openko::GuardVerdict::Violation && OPENKO_ANTICHEAT_KICK)
+			{
+				Close();
+				return;
+			}
+		}
+	}
 
 	switch (command)
 	{
@@ -1523,6 +1544,29 @@ void CUser::MoveProcess(char* pBuf)
 
 	if (!pMap->IsValidPosition(real_x, real_z))
 		return;
+
+	// OpenKO anti-cheat: speedhack / teleport. Sunucu oyuncuyu kendisi tasidiysa (warp, zone,
+	// dirilme) cur ve will konumlarindan en az biri guncel oldugu icin kucuk mesafe alinir.
+	{
+		const float distWill = std::hypot(real_x - m_fWill_x, real_z - m_fWill_z);
+		const float distCur  = std::hypot(real_x - m_pUserData->m_curx, real_z - m_pUserData->m_curz);
+		const openko::GuardVerdict verdict = m_moveGuard.Check(
+			std::min(distWill, distCur), m_bSpeedAmount, openko::GuardClock::now());
+
+		if (verdict != openko::GuardVerdict::Ok)
+		{
+			spdlog::warn("User::MoveProcess: movement anomaly [charId={} socketId={} zone={} dist={:.1f} "
+						 "speedAmount={} strikes={} total={} verdict={}]",
+				m_pUserData->m_id, _socketId, m_pUserData->m_bZone, std::min(distWill, distCur),
+				m_bSpeedAmount, m_moveGuard.Strikes(), m_moveGuard.TotalStrikes(), static_cast<int>(verdict));
+
+			if (verdict == openko::GuardVerdict::Violation && OPENKO_ANTICHEAT_KICK)
+			{
+				SpeedHackUser(); // loglar, yetkiyi BLOCK yapar ve baglantiyi kapatir
+				return;
+			}
+		}
+	}
 
 	//	real_y = pMap->GetHeight(	real_x, real_y, real_z );
 
@@ -2708,6 +2752,7 @@ void CUser::ZoneChange(int zone, float x, float z)
 	m_pUserData->m_bZone = zone;
 	m_pUserData->m_curx = m_fWill_x = x;
 	m_pUserData->m_curz = m_fWill_z = z;
+	m_moveGuard.Reset();
 
 	if (m_pUserData->m_bZone == ZONE_SNOW_BATTLE)
 	{
@@ -2824,6 +2869,7 @@ void CUser::Warp(float x, float z)
 	m_fWill_x           = x;
 	m_pUserData->m_curz = z;
 	m_fWill_z           = z;
+	m_moveGuard.Reset();
 
 	m_RegionX           = (int) (m_pUserData->m_curx / VIEW_DISTANCE);
 	m_RegionZ           = (int) (m_pUserData->m_curz / VIEW_DISTANCE);

@@ -11,6 +11,7 @@
 #include "EVENT_DATA.h"
 #include "LOGIC_ELSE.h"
 #include "EXEC.h"
+#include "CheatGuard.h"
 
 #include <shared/JvCryption.h>
 #include <shared-server/TcpServerSocket.h>
@@ -175,6 +176,10 @@ public:
 	double m_fBlinkStartTime                = 0.0; // When did you start to blink?
 
 	int16_t m_sAliveCount                   = 0;
+
+	// OpenKO anti-cheat: sunucu tarafi hareket ve paket bekcileri (bkz. CheatGuard.h)
+	openko::CMoveGuard m_moveGuard {};
+	openko::CPacketGuard m_packetGuard {};
 
 	uint8_t m_bAbnormalType    = ABNORMAL_NORMAL; // Is the player normal, a giant, or a dwarf?
 

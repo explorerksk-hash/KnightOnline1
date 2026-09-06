@@ -209,6 +209,7 @@
     <ClInclude Include="SendWorkerThread.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="UdpSocket.h" />
+    <ClInclude Include="CheatGuard.h" />
     <ClInclude Include="User.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
