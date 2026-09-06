@@ -162,9 +162,10 @@ class UIBase:
     def _write_base(self, f: BinaryIO) -> None:
         _w_str(f, self.name)                         # CN3BaseFileAccess
         f.write(struct.pack("<hh", len(self.children), 0))  # 1264+: int16 count, int16 0
-        # Motor cocuklari TERS sirayla cizer (rbegin -> rend): dosyadaki ILK cocuk en USTTE.
-        # Bellekte "ekleme sirasi = alttan uste" tutulur, dosyaya ters yazilir.
-        for c in reversed(self.children):
+        # Yukleme AddChild()=push_front ile listenin BASINA ekler, Render ise listeyi
+        # SONDAN basa gezer -> dosyadaki ILK cocuk ilk (en altta) cizilir.
+        # Yani dosya sirasi = alttan uste; ekleme sirasinda yazilir.
+        for c in self.children:
             _w_u32(f, c.ui_type)
             c.write(f)
         _w_str(f, self.id)
@@ -201,7 +202,6 @@ class UIBase:
             c = cls()
             c.read(f)
             self.children.append(c)
-        self.children.reverse()  # dosya: ustten alta -> bellek: alttan uste
         self.id = _r_str(f)
         self.region = _r_rect(f)
         self.movable = _r_rect(f)
