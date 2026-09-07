@@ -750,7 +750,8 @@ void CPlayerBase::Render(float fSunAngle)
 		return;
 
 #ifdef _DEBUG
-	if (m_pShapeExtraRef) // 오브젝트 형식이면...
+	// OpenKO: carpisma agi cizimi Option.ini [Debug] Overlay ile acilir.
+	if (s_Options.bDebugOverlay && m_pShapeExtraRef) // 오브젝트 형식이면...
 	{
 		m_pShapeExtraRef->RenderCollisionMesh();
 		return;
@@ -820,23 +821,28 @@ void CPlayerBase::Render(float fSunAngle)
 		this->RenderShadow(fSunAngle);
 
 #ifdef _DEBUG
-	if (m_Chr.CollisionMesh()) // 충돌 체크용 박스..
+	// OpenKO: kirmizi carpisma kutulari ve mavi sunucu-konum cizgileri
+	// Option.ini [Debug] Overlay=1 olmadan cizilmez.
+	if (s_Options.bDebugOverlay)
 	{
-		s_lpD3DDev->SetTransform(D3DTS_WORLD, m_Chr.m_Matrix.toD3D());
-		m_Chr.CollisionMesh()->Render(0xffff0000);
-	}
+		if (m_Chr.CollisionMesh()) // 충돌 체크용 박스..
+		{
+			s_lpD3DDev->SetTransform(D3DTS_WORLD, m_Chr.m_Matrix.toD3D());
+			m_Chr.CollisionMesh()->Render(0xffff0000);
+		}
 
-	__Vector3 vLine[3] {};
-	vLine[0]    = m_Chr.Pos();
-	vLine[0].y += 1.3f;
-	vLine[1]    = m_vPosFromServer;
-	vLine[1].y += 1.3f;
-	vLine[2]    = vLine[1];
-	vLine[2].y += 3.0f;
-	__Matrix44 mtx;
-	mtx.Identity();
-	CN3Base::s_lpD3DDev->SetTransform(D3DTS_WORLD, mtx.toD3D());
-	CN3Base::RenderLines(vLine, 2, 0xff00ffff);
+		__Vector3 vLine[3] {};
+		vLine[0]    = m_Chr.Pos();
+		vLine[0].y += 1.3f;
+		vLine[1]    = m_vPosFromServer;
+		vLine[1].y += 1.3f;
+		vLine[2]    = vLine[1];
+		vLine[2].y += 3.0f;
+		__Matrix44 mtx;
+		mtx.Identity();
+		CN3Base::s_lpD3DDev->SetTransform(D3DTS_WORLD, mtx.toD3D());
+		CN3Base::RenderLines(vLine, 2, 0xff00ffff);
+	}
 #endif
 
 	if (m_InfoBase.bRenderID && m_pIDFont)

@@ -425,7 +425,7 @@ def dump(path: str) -> str:
 
 
 # ---------------------------------------------------------------- .dxt yazici
-def save_dxt(path: str, img, name: str = "") -> None:
+def save_dxt(path: str, img, name: str = "", fmt: int = None) -> None:
     """PIL RGBA gorseli sikistirmasiz A8R8G8B8 .dxt (NTF v3, mipmap yok) olarak yazar.
 
     Boyutlar 2'nin kuvveti olmali (256/512/1024). 512+ icin motorun bekledigi
@@ -436,15 +436,32 @@ def save_dxt(path: str, img, name: str = "") -> None:
     for d in (w, h):
         if d & (d - 1):
             raise ValueError(f"doku boyutu 2'nin kuvveti olmali: {w}x{h}")
-    # R,G,B,A -> little-endian A8R8G8B8 = bayt sirasi B,G,R,A
-    b, g, r, a = img.split()[2], img.split()[1], img.split()[0], img.split()[3]
+    if fmt is None:
+        fmt = D3DFMT_A8R8G8B8
+
     from PIL import Image
-    bgra = Image.merge("RGBA", (b, g, r, a)).tobytes()
+    import numpy as np
+
+    if fmt in (D3DFMT_A8R8G8B8, D3DFMT_X8R8G8B8):
+        # R,G,B,A -> little-endian A8R8G8B8 = bayt sirasi B,G,R,A
+        b, g, r, a = img.split()[2], img.split()[1], img.split()[0], img.split()[3]
+        payload = Image.merge("RGBA", (b, g, r, a)).tobytes()
+    elif fmt in (D3DFMT_A4R4G4B4, D3DFMT_A1R5G5B5):
+        arr = np.asarray(img, np.uint32)
+        r, g, bl, a = arr[..., 0], arr[..., 1], arr[..., 2], arr[..., 3]
+        if fmt == D3DFMT_A4R4G4B4:
+            packed = ((a >> 4) << 12) | ((r >> 4) << 8) | ((g >> 4) << 4) | (bl >> 4)
+        else:
+            packed = ((a >= 128).astype(np.uint32) << 15) | ((r >> 3) << 10) | ((g >> 3) << 5) | (bl >> 3)
+        payload = packed.astype("<u2").tobytes()
+    else:
+        raise ValueError(f"save_dxt: desteklenmeyen format {fmt}")
+
     with open(path, "wb") as f:
         _w_str(f, name)
         f.write(b"NTF" + bytes([3]))
-        f.write(struct.pack("<iiIi", w, h, D3DFMT_A8R8G8B8, 0))
-        f.write(bgra)
+        f.write(struct.pack("<iiIi", w, h, fmt, 0))
+        f.write(payload)
         if w >= 512 and h >= 512:
             f.write(b"\0" * (256 * 256 * 2))
 

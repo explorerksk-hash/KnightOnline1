@@ -126,7 +126,9 @@ void CPortalVolume::Render()
 	RenderShape();
 
 #ifdef _DEBUG
-	RenderCollision();
+	// OpenKO: Option.ini [Debug] Overlay
+	if (CN3Base::s_Options.bDebugOverlay)
+		RenderCollision();
 #endif
 
 	CN3Base::s_lpD3DDev->SetRenderState(D3DRS_POINTSIZE, dwPointSize);
@@ -155,7 +157,7 @@ void CPortalVolume::RenderShape()
 		CN3Base::s_lpD3DDev->SetTransform(D3DTS_WORLD, pSI->m_pShape->m_Matrix.toD3D());
 
 #ifdef _DEBUG
-		if (pSI->m_pShape->CollisionMesh())
+		if (CN3Base::s_Options.bDebugOverlay && pSI->m_pShape->CollisionMesh())
 			pSI->m_pShape->CollisionMesh()->Render(0xffffffff);
 #endif
 
