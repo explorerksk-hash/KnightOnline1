@@ -449,6 +449,81 @@ def save_dxt(path: str, img, name: str = "") -> None:
             f.write(b"\0" * (256 * 256 * 2))
 
 
+def load_dxt(path: str):
+    """.dxt -> PIL RGBA. Sikistirmasiz (A8R8G8B8/X8R8G8B8/A4R4G4B4/A1R5G5B5) ve DXT1/3/5 (mipmap'siz)."""
+    import numpy as np
+    from PIL import Image
+    with open(path, "rb") as f:
+        _r_str(f)
+        magic = f.read(4)
+        if magic[:3] != b"NTF":
+            raise ValueError("NTF degil")
+        w, h, fmt, mip = struct.unpack("<iiIi", f.read(16))
+        if fmt in (D3DFMT_A8R8G8B8, D3DFMT_X8R8G8B8):
+            raw = np.frombuffer(f.read(w * h * 4), np.uint8).reshape(h, w, 4)
+            b, g, r, a = raw[..., 0], raw[..., 1], raw[..., 2], raw[..., 3]
+            if fmt == D3DFMT_X8R8G8B8:
+                a = np.full_like(a, 255)
+            return Image.fromarray(np.dstack([r, g, b, a]), "RGBA")
+        if fmt in (D3DFMT_A4R4G4B4, D3DFMT_A1R5G5B5):
+            raw = np.frombuffer(f.read(w * h * 2), "<u2").reshape(h, w).astype(np.uint32)
+            if fmt == D3DFMT_A4R4G4B4:
+                a = ((raw >> 12) & 0xF) * 17; r = ((raw >> 8) & 0xF) * 17
+                g = ((raw >> 4) & 0xF) * 17; b = (raw & 0xF) * 17
+            else:
+                a = ((raw >> 15) & 1) * 255; r = ((raw >> 10) & 0x1F) * 255 // 31
+                g = ((raw >> 5) & 0x1F) * 255 // 31; b = (raw & 0x1F) * 255 // 31
+            return Image.fromarray(np.dstack([r, g, b, a]).astype(np.uint8), "RGBA")
+        if fmt in (D3DFMT_DXT1, D3DFMT_DXT3, D3DFMT_DXT5):
+            bs = 8 if fmt == D3DFMT_DXT1 else 16
+            data = f.read((w // 4) * (h // 4) * bs)
+            return _decode_bc(data, w, h, fmt)
+        raise ValueError(f"desteklenmeyen format {fmt}")
+
+
+def _decode_bc(data: bytes, w: int, h: int, fmt: int):
+    import numpy as np
+    from PIL import Image
+    out = np.zeros((h, w, 4), np.uint8)
+    bs = 8 if fmt == D3DFMT_DXT1 else 16
+    i = 0
+    for by in range(0, h, 4):
+        for bx in range(0, w, 4):
+            blk = data[i:i + bs]; i += bs
+            alpha = np.full((4, 4), 255, np.uint8)
+            if fmt == D3DFMT_DXT3:
+                av = int.from_bytes(blk[:8], "little")
+                for k in range(16):
+                    alpha[k // 4, k % 4] = ((av >> (4 * k)) & 0xF) * 17
+                blk = blk[8:]
+            elif fmt == D3DFMT_DXT5:
+                a0, a1 = blk[0], blk[1]
+                bits = int.from_bytes(blk[2:8], "little")
+                tbl = [a0, a1] + ([(a0 * (6 - j) + a1 * (j + 1)) // 7 for j in range(6)] if a0 > a1
+                                  else [(a0 * (4 - j) + a1 * (j + 1)) // 5 for j in range(4)] + [0, 255])
+                for k in range(16):
+                    alpha[k // 4, k % 4] = tbl[(bits >> (3 * k)) & 7]
+                blk = blk[8:]
+            c0, c1 = struct.unpack("<HH", blk[:4])
+            idx = int.from_bytes(blk[4:8], "little")
+
+            def rgb(c):
+                return ((c >> 11) * 255 // 31, ((c >> 5) & 0x3F) * 255 // 63, (c & 0x1F) * 255 // 31)
+            p0, p1 = rgb(c0), rgb(c1)
+            if fmt != D3DFMT_DXT1 or c0 > c1:
+                pal = [p0, p1, tuple((2 * a + b) // 3 for a, b in zip(p0, p1)), tuple((a + 2 * b) // 3 for a, b in zip(p0, p1))]
+                pa = [255, 255, 255, 255]
+            else:
+                pal = [p0, p1, tuple((a + b) // 2 for a, b in zip(p0, p1)), (0, 0, 0)]
+                pa = [255, 255, 255, 0]
+            for k in range(16):
+                sel = (idx >> (2 * k)) & 3
+                y, x = by + k // 4, bx + k % 4
+                out[y, x, :3] = pal[sel]
+                out[y, x, 3] = min(alpha[k // 4, k % 4], pa[sel]) if fmt == D3DFMT_DXT1 else alpha[k // 4, k % 4]
+    return Image.fromarray(out, "RGBA")
+
+
 def read_dxt_header(path: str) -> dict:
     with open(path, "rb") as f:
         name = _r_str(f)
@@ -462,5 +537,6 @@ if __name__ == "__main__":
     for p in sys.argv[1:]:
         if p.lower().endswith(".dxt"):
             print(read_dxt_header(p))
+            load_dxt(p).save(p.rsplit(".", 1)[0] + ".png")
         else:
             print(dump(p))
