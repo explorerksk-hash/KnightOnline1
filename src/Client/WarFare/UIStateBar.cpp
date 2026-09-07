@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UIStateBar.h"
 #include "GameDef.h"
 #include "LocalInput.h"
@@ -749,13 +750,18 @@ void CUIStateBar::AddMagic(__TABLE_UPC_SKILL* pSkill, float fDuration)
 		return;
 	}
 
+	// OpenKO: buff simgesinin boyutu DOKUNUN boyutundan aliniyordu. Ikonlar
+	// yuksek cozunurluge cikarilinca (32 -> 128) simgeler ekranin dortte birini
+	// kaplamaya basladi. Boyut artik sabit mantiksal 32 piksel * UI olcegi.
+	const int iIconSize = static_cast<int>(32.0f * CGameBase::OpenKOUIScale() + 0.5f);
+
 	RECT rt;
 	rt.left = rt.top = 0;
-	rt.right         = pTex->Width();
-	rt.bottom        = pTex->Height();
+	rt.right         = iIconSize;
+	rt.bottom        = iIconSize;
 
 	int iconCount    = static_cast<int>(m_pMagic.size());
-	int PosX         = static_cast<int>(s_CameraData.vp.Width) - (rt.right * (iconCount + 1));
+	int PosX         = static_cast<int>(s_CameraData.vp.Width) - (iIconSize * (iconCount + 1));
 	pIcon->SetRegion(rt);
 	pIcon->SetPos(PosX, 0);
 

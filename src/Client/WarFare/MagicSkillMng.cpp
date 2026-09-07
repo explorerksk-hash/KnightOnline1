@@ -1307,7 +1307,9 @@ void CMagicSkillMng::Tick()
 	for (auto it = m_RecastTimes.begin(); it != m_RecastTimes.end();)
 	{
 #ifdef _DEBUG
-		if (m_fMsgUpdateTimer >= 0.2f)
+		// OpenKO: bekleme suresi ayiklama mesaji sohbeti dolduruyordu;
+		// Option.ini [Debug] Overlay=1 olmadan yazilmaz.
+		if (CN3Base::s_Options.bDebugOverlay && m_fMsgUpdateTimer >= 0.2f)
 		{
 			debugMessage = fmt::format("SkillID: {} - {:.2f} seconds", it->first, it->second);
 			m_pGameProcMain->MsgOutput(debugMessage, 0xffffff00);
@@ -1325,7 +1327,7 @@ void CMagicSkillMng::Tick()
 	for (auto it = m_NonActionRecastTimes.begin(); it != m_NonActionRecastTimes.end();)
 	{
 #ifdef _DEBUG
-		if (m_fMsgUpdateTimer >= 0.2f)
+		if (CN3Base::s_Options.bDebugOverlay && m_fMsgUpdateTimer >= 0.2f)
 		{
 			debugMessage = fmt::format("SkillID: {} - skill {:.2f} seconds", it->first, it->second);
 			m_pGameProcMain->MsgOutput(debugMessage, 0xffffff00);
