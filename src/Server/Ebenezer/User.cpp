@@ -12118,6 +12118,13 @@ bool CUser::CheckEventLogic(const EVENT_DATA* pEventData)
 					bExact = true;
 				break;
 
+			// Kore'ye ozgu "PP-card" (on odemeli kart) kontrolleri: bu sunucuda boyle bir
+			// sistem yok, kosul her zaman saglanmamis sayilir.
+			case LOGIC_CHECK_PPCARD_SERIAL:
+			case LOGIC_CHECK_PPCARD_TYPE:
+				bExact = false;
+				break;
+
 			default:
 				return false;
 		}
@@ -12294,6 +12301,34 @@ bool CUser::RunEvent(const EVENT_DATA* pEventData)
 				ChangeMannerPoint(pExec->m_ExecInt[0]);
 				break;
 
+			// Parti uyelerinin tamamini baska bolgeye tasir.
+			case EXEC_ZONE_CHANGE_PARTY:
+				PartyZoneChange(pExec->m_ExecInt[0], static_cast<float>(pExec->m_ExecInt[1]),
+					static_cast<float>(pExec->m_ExecInt[2]));
+				break;
+
+			// Parti uyelerinden verilen esyanin tamamini alir (etkinlik bolgelerinde giriste).
+			case EXEC_ROB_ALLITEM_PARTY:
+				PartyRobAllItem(pExec->m_ExecInt[0]);
+				break;
+
+			// Asagidakiler resmi (Kore) sunucuya ozgu; bu sunucuda karsiliklari yok.
+			// Ayristiriliyorlar ki quest dosyalari uyari basmadan yuklensin.
+			case EXEC_SEND_WEBPAGE_ADDRESS:
+			case EXEC_GIVE_PPCARD_ITEM:
+			case EXEC_SHOW_PCBANG_ITEM:
+			case EXEC_CHECK_PCBANG_ITEM:
+			case EXEC_GIVE_PCBANG_ITEM:
+			case EXEC_CHECK_PCBANG_OWNER:
+			case EXEC_CHANGE_NAME:
+			case EXEC_STATE_CHANGE:
+			case EXEC_MOVE_MIDDLE_STATUE:
+			case EXEC_CHANGE_POSITION:
+				spdlog::debug("User::RunEvent: opcode not supported on this server, ignored "
+							  "[opcode={:02X} charId={}]",
+					pExec->m_Exec, m_pUserData->m_id);
+				break;
+
 			default:
 				spdlog::warn("User::RunEvent: unhandled opcode. opcode={:02X} zoneId={}",
 					pExec->m_Exec, m_pUserData->m_bZone);
@@ -12302,6 +12337,86 @@ bool CUser::RunEvent(const EVENT_DATA* pEventData)
 	}
 
 	return true;
+}
+
+// Parti uyelerinin tamamini (ayni bolgede olanlar dahil) hedef bolgeye tasir.
+// EXEC_ZONE_CHANGE_PARTY icin; partisi yoksa yalnizca oyuncunun kendisi tasinir.
+void CUser::PartyZoneChange(int zone, float x, float z)
+{
+	if (m_sPartyIndex == -1)
+	{
+		ZoneChange(zone, x, z);
+		return;
+	}
+
+	_PARTY_GROUP* pParty = m_pMain->m_PartyMap.GetData(m_sPartyIndex);
+	if (pParty == nullptr)
+	{
+		ZoneChange(zone, x, z);
+		return;
+	}
+
+	for (int i = 0; i < MAX_PARTY_SIZE; i++)
+	{
+		const int16_t socketId = pParty->userSocketIds[i];
+		if (socketId < 0)
+			continue;
+
+		auto pUser = m_pMain->GetUserPtr(socketId);
+		if (pUser == nullptr)
+			continue;
+
+		pUser->ZoneChange(zone, x, z);
+	}
+}
+
+// Envanterdeki verilen esyanin BUTUN kopyalarini siler (yigin sayisindan bagimsiz).
+void CUser::RobAllItem(int itemId)
+{
+	if (itemId <= 0)
+		return;
+
+	// RobItem her cagrida bir yigin isler; ayni esya birden fazla yuvada olabilir.
+	// Guvenlik icin envanter yuvasi sayisi kadar deneriz.
+	for (int i = 0; i < HAVE_MAX; i++)
+	{
+		if (!RobItem(itemId, INT16_MAX))
+			break;
+	}
+}
+
+// Parti uyelerinin envanterinden verilen esyanin tamamini siler.
+// EXEC_ROB_ALLITEM_PARTY icin; etkinlik bolgelerine girerken kullanilir.
+void CUser::PartyRobAllItem(int itemId)
+{
+	if (itemId <= 0)
+		return;
+
+	if (m_sPartyIndex == -1)
+	{
+		RobAllItem(itemId);
+		return;
+	}
+
+	_PARTY_GROUP* pParty = m_pMain->m_PartyMap.GetData(m_sPartyIndex);
+	if (pParty == nullptr)
+	{
+		RobAllItem(itemId);
+		return;
+	}
+
+	for (int i = 0; i < MAX_PARTY_SIZE; i++)
+	{
+		const int16_t socketId = pParty->userSocketIds[i];
+		if (socketId < 0)
+			continue;
+
+		auto pUser = m_pMain->GetUserPtr(socketId);
+		if (pUser == nullptr)
+			continue;
+
+		pUser->RobAllItem(itemId);
+	}
 }
 
 void CUser::TestPacket()

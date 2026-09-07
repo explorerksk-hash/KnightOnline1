@@ -205,6 +205,80 @@ bool EXEC::Parse(const char* line, const std::string& filename, int lineNumber)
 			argsToParse = 1;
 			break;
 
+		// E CHANGE_POSITION
+		// Resmi quest dosyalarinda argumansiz kullanilir; bu sunucuda karsiligi yok.
+		case "CHANGE_POSITION"_djb2:
+			m_Exec = EXEC_CHANGE_POSITION;
+			break;
+
+		// E ZONE_CHANGE_PARTY {zone ID} {x} {z}
+		case "ZONE_CHANGE_PARTY"_djb2:
+			m_Exec      = EXEC_ZONE_CHANGE_PARTY;
+			argsToParse = 3;
+			break;
+
+		// E ROB_ALLITEM_PARTY {item ID}
+		// Parti uyelerinin envanterinden verilen esyanin tamamini siler.
+		case "ROB_ALLITEM_PARTY"_djb2:
+			m_Exec      = EXEC_ROB_ALLITEM_PARTY;
+			argsToParse = 1;
+			break;
+
+		// E CHANGE_NAME
+		case "CHANGE_NAME"_djb2:
+			m_Exec = EXEC_CHANGE_NAME;
+			break;
+
+		// E STATE_CHANGE {state type} {value}
+		case "STATE_CHANGE"_djb2:
+			m_Exec      = EXEC_STATE_CHANGE;
+			argsToParse = 2;
+			break;
+
+		// E MOVE_MIDDLE_STATUE
+		case "MOVE_MIDDLE_STATUE"_djb2:
+			m_Exec = EXEC_MOVE_MIDDLE_STATUE;
+			break;
+
+		// E SEND_WEBPAGE_ADDRESS {page ID}
+		// Resmi sunucuda istemciye bir web adresi actiriyordu; burada karsiligi yok.
+		case "SEND_WEBPAGE_ADDRESS"_djb2:
+			m_Exec      = EXEC_SEND_WEBPAGE_ADDRESS;
+			argsToParse = 1;
+			break;
+
+		// --- Kore'ye ozgu PC-bang / PP-card ozellikleri: ayristirilir, calistirilmaz ---
+
+		// E GIVE_PPCARD_ITEM {item ID} {item count}
+		case "GIVE_PPCARD_ITEM"_djb2:
+			m_Exec      = EXEC_GIVE_PPCARD_ITEM;
+			argsToParse = 2;
+			break;
+
+		// E SHOW_PCBANG_ITEM {item ID}
+		case "SHOW_PCBANG_ITEM"_djb2:
+			m_Exec      = EXEC_SHOW_PCBANG_ITEM;
+			argsToParse = 1;
+			break;
+
+		// E CHECK_PCBANG_ITEM {item ID} {basarili event} {basarisiz event}
+		case "CHECK_PCBANG_ITEM"_djb2:
+			m_Exec      = EXEC_CHECK_PCBANG_ITEM;
+			argsToParse = 3;
+			break;
+
+		// E GIVE_PCBANG_ITEM {item ID} {item count}
+		case "GIVE_PCBANG_ITEM"_djb2:
+			m_Exec      = EXEC_GIVE_PCBANG_ITEM;
+			argsToParse = 2;
+			break;
+
+		// E CHECK_PCBANG_OWNER {basarili event} {basarisiz event}
+		case "CHECK_PCBANG_OWNER"_djb2:
+			m_Exec      = EXEC_CHECK_PCBANG_OWNER;
+			argsToParse = 2;
+			break;
+
 		default:
 			spdlog::warn("EXEC::Parse: unhandled opcode '{}' ({}:{})", temp, filename, lineNumber);
 			handled = false;

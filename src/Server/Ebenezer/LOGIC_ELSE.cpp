@@ -332,6 +332,19 @@ bool LOGIC_ELSE::Parse_and(const char* line, const std::string& filename, int li
 			argsToParse = 1; // officially it always parses 1 even though it doesn't use it
 			break;
 
+		// A CHECK_PPCARD_SERIAL {serial}
+		// Kore'ye ozgu "PP-card" kontrolu; bu sunucuda karsiligi yok, her zaman false doner.
+		case "CHECK_PPCARD_SERIAL"_djb2:
+			m_LogicElse = LOGIC_CHECK_PPCARD_SERIAL;
+			argsToParse = 1;
+			break;
+
+		// A CHECK_PPCARD_TYPE {type}
+		case "CHECK_PPCARD_TYPE"_djb2:
+			m_LogicElse = LOGIC_CHECK_PPCARD_TYPE;
+			argsToParse = 1;
+			break;
+
 		default:
 			spdlog::warn(
 				"LOGIC_ELSE::Parse_and: unhandled opcode '{}' ({}:{})", temp, filename, lineNumber);

@@ -569,6 +569,15 @@ public:
 	void StateChange(char* pBuf);
 	void PointChange(char* pBuf);
 	void ZoneChange(int zone, float x, float z);
+
+	/// \brief tum parti uyelerini hedef bolgeye tasir (EXEC_ZONE_CHANGE_PARTY)
+	void PartyZoneChange(int zone, float x, float z);
+
+	/// \brief tum parti uyelerinden verilen esyayi tamamen siler (EXEC_ROB_ALLITEM_PARTY)
+	void PartyRobAllItem(int itemId);
+
+	/// \brief envanterdeki verilen esyanin butun kopyalarini siler
+	void RobAllItem(int itemId);
 	void ItemGet(char* pBuf);
 	static bool IsValidName(const char* name);
 	void AllCharInfoToAgent();

@@ -105,6 +105,14 @@ bool EVENT::LoadEventImpl(int zone, const std::filesystem::path& questsDir)
 
 			ParseSpace(first, buf, t_index);
 
+			// Bazi quest dosyalari (11.evt, 12.evt) ilk satirda "TYPE {zoneId}" tasir.
+			// Yalnizca bilgi amaclidir; bolge numarasi zaten dosya adindan geliyor.
+			if (0 == strcmp(first, "TYPE"))
+			{
+				index = 0;
+				continue;
+			}
+
 			//			if (0 == strcmp(first, "QUEST"))
 			if (0 == strcmp(first, "EVENT"))
 			{
