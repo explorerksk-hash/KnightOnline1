@@ -2628,6 +2628,17 @@ bool CNpc::StepMove(int /*nStep*/)
 	if (m_NpcState != NPC_MOVING && m_NpcState != NPC_TRACING && m_NpcState != NPC_BACK)
 		return false;
 
+	// OpenKO (bug #3): yol hesabi basarisiz olduysa (m_iAniFrameIndex == 0) burada
+	// bos tabloyu okuyup her tick hata basiyorduk. Yol yoksa hareketi bitmis say.
+	if (m_iAniFrameIndex <= 0
+		|| m_iAniFrameCount < 0
+		|| m_iAniFrameCount >= MAX_PATH_LINE)
+	{
+		m_fPrevX = m_fCurX;
+		m_fPrevZ = m_fCurZ;
+		return false;
+	}
+
 	__Vector3 vStart {}, vEnd {}, vDis {};
 	float fDis = 0.0f, fOldCurX = 0.0f, fOldCurZ = 0.0f;
 
@@ -5904,6 +5915,23 @@ void CNpc::IsNoPathFind(float fDistance)
 		spdlog::error("Npc::IsNoPathFind: map not found [zoneIndex={} npcId={} npcName={}]",
 			m_strName, m_sSid, m_ZoneIndex);
 		return;
+	}
+
+	// OpenKO (bug #3): adim boyu 0/negatif ise dongu asla ilerlemez ve her tick
+	// "invalid pathCount" hatasi basardi (or. hareketsiz kapi NPC'leri). Ayrica adim
+	// boyu cok kucukse gereken adim sayisi MAX_PATH_LINE'i asar; bu durumda adim
+	// boyunu buyuterek yolu tabloya sigdiririz - hata vermek yerine yurutuyoruz.
+	if (fDistance <= 0.0f)
+	{
+		ClearPathFindData();
+		return;
+	}
+
+	{
+		const float fTotal   = GetDistance(vStart, vEnd);
+		const float fMinStep = fTotal / static_cast<float>(MAX_PATH_LINE - 1);
+		if (fDistance < fMinStep)
+			fDistance = fMinStep;
 	}
 
 	while (1)
