@@ -1434,7 +1434,10 @@ bool AIServerApp::AddObjectEventNpc(_OBJECT_EVENT* pEvent, int zone_number)
 {
 	model::Npc* pNpcTable = nullptr;
 	int nServerNum        = GetServerNumber(zone_number);
-	if (_serverZoneType != nServerNum)
+	// OpenKO: tek AIServer tum bolgelere hizmet ediyorsa (UNIFY_ZONE) her bolgenin
+	// harita olay NPC'leri (kapilar, heykeller) da olusturulmali. LoadNpcPosTable
+	// bu istisnayi zaten yapiyordu, burada eksikti.
+	if (_serverZoneType != nServerNum && _serverZoneType != UNIFY_ZONE)
 		return false;
 
 	pNpcTable = _npcTableMap.GetData(pEvent->sIndex);

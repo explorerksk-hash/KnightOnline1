@@ -9,6 +9,7 @@
 | 4 | AIServer | `Npc::IsNoPathFind invalid pathCount` / `StepMove aniFrameCount out of bounds` (Victory Gate 10510/20510, pathCount=100, frameCount=0) | P2 | Başlangıç | **Düzeltildi** — adım boyu 0/çok küçükken sonsuz döngü; artık adım boyu yola göre büyütülüyor, yol yoksa StepMove sessizce çıkıyor | `fix(aiserver): npc path` |
 | 5 | AIServer | `GameSocket::Parsing: Unhandled opcode 32` (Ebenezer → AI, 4 kez başlangıçta) | P2 | Ebenezer bağlanınca | **Düzeltildi** — 0x32 = 50 = `AG_SERVER_INFO`; Ebenezer `SendAllUserInfo()` ile toplu oyuncu listesini gönderirken başa/sona koyduğu işaretçiler AIServer tarafında karşılıksızdı. `CGameSocket::RecvServerInfo()` eklendi | GameSocket.cpp/.h |
 | 6 | Client | KnightOnLine.exe başlatıldığında küçük bir pencere açılıyor, ~13 MB bellek; Log.txt oluşmadı → N3Eng init'ten önce duruyor (mesaj kutusu?). Claude pencereyi göremiyor. | P0 | "Only client" profili ile başlat | Açık — kullanıcı ekranı bildirecek | — |
+| 8 | AIServer | Bazı haritalarda hiç NPC/mob yok (El Morad ve savaş bölgeleri) | P0 | Her açılışta | **Düzeltildi** — `server.ini` `[SERVER] ZONE=1` (KARUS) idi; `LoadNpcPosTable` yalnızca kendi sunucu numarasına ait bölgelerin NPC'lerini üretiyordu. `ZONE=0` (UNIFY) yapıldı; ayrıca `AddObjectEventNpc` içinde UNIFY istisnası eksikti (kapı/heykel gibi harita olay NPC'leri de üretilmiyordu) | AIServerApp.cpp, bin/Debug-x64/server.ini |
 
 ## Yapılan değişiklikler
 
