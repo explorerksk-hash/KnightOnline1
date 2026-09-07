@@ -46,8 +46,9 @@ public:
 	{
 		float baseRunSpeed    = 4.5f;  // m/s, buff'siz kosma hizi (istemci: 1.5 * 3.0)
 		float tolerance       = 1.45f; // yokus/ag/yuvarlama payi
-		float windowSeconds   = 8.0f;  // ortalamanin alindigi pencere
-		float minWindowFill   = 3.0f;  // pencere bu kadar dolmadan karar verilmez
+		float windowSeconds   = 10.0f; // ortalamanin alindigi pencere
+		float minWindowFill   = 4.0f;  // pencere bu kadar dolmadan karar verilmez
+		int minSamples        = 5;     // en uzun ornek dusuldugu icin en az 5 gerekir
 		int strikeLimit       = 4;     // bu kadar strike -> Violation
 		float strikeDecaySec  = 45.0f; // her N saniyede 1 strike silinir
 		float maxJumpMeters   = 60.0f; // tek pakette bundan uzak -> isinlanma sayilir
@@ -91,19 +92,27 @@ public:
 			strike = true;
 			_jumps.clear();
 		}
-		else if (filled >= _cfg.minWindowFill && _samples.size() >= 4)
+		else if (filled >= _cfg.minWindowFill && static_cast<int>(_samples.size()) >= _cfg.minSamples)
 		{
-			float sumDist = 0.0f, sumAllowed = 0.0f;
+			float sumDist = 0.0f, maxSample = 0.0f, sumAllowed = 0.0f;
 			for (const Sample& s : _samples)
 			{
-				sumDist += s.dist;
+				sumDist   = sumDist + s.dist;
+				maxSample = std::max(maxSample, s.dist);
 				sumAllowed = std::max(sumAllowed, s.maxSpeed);
 			}
 
 			const float span = std::chrono::duration<float>(now - _samples.front().at).count();
 			if (span > 0.5f)
 			{
-				const float avg = sumDist / span;
+				// KO'nun hareket paketi VARILACAK noktayi tasir: paket, oyuncu o
+				// mesafeyi katetmeden once gelir. Pencerenin sonunda her zaman
+				// boyle "havada" bir segment bulunur ve kisa pencerelerde
+				// ortalamayi yukari ceker (7 Eyl 2026: dist=55.7 ile yanlis
+				// alarm). En uzun tek ornegi hesaptan dusuyoruz; surekli asiri
+				// hiz birden fazla ornege yayildigi icin yakalanmaya devam eder.
+				const float effective = std::max(0.0f, sumDist - maxSample);
+				const float avg       = effective / span;
 				if (avg > sumAllowed)
 				{
 					strike = true;

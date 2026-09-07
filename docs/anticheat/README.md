@@ -6,7 +6,7 @@ Kaynak: `src/Server/Ebenezer/CheatGuard.h` (yalnızca STL, birim testli: `tests/
 
 | Bekçi | Nerede | Ne ölçer | Karar |
 |---|---|---|---|
-| `CMoveGuard` | `CUser::MoveProcess` | **8 sn kayan pencerede ortalama hız** vs. izin verilen hız (4.5 m/s × `m_bSpeedAmount` × 1.45 tolerans). 60 m üstü tek sıçrama ortalamaya katılmaz, ayrı sayılır (pencerede 4 sıçrama → strike). | 4 strike → `Violation` |
+| `CMoveGuard` | `CUser::MoveProcess` | **10 sn kayan pencerede ortalama hız** vs. izin verilen hız (4.5 m/s × `m_bSpeedAmount` × 1.45 tolerans). 60 m üstü tek sıçrama ortalamaya katılmaz, ayrı sayılır (pencerede 4 sıçrama → strike). Pencerenin **en uzun tek örneği** toplamdan düşülür: KO'nun hareket paketi varılacak noktayı taşıdığı için pencerenin sonunda her zaman henüz katedilmemiş bir segment bulunur. | 4 strike → `Violation` |
 | `CPacketGuard` | `CUser::Parsing` | Saniyede paket sayısı (>120) | 3 ardışık saniye → `Violation` |
 
 - Strike'lar 45 sn'de bir azalır.

@@ -132,6 +132,46 @@ int main()
 			assert(q.OnPacket(t) == GuardVerdict::Ok);
 		}
 	}
+	// 12) Uzun kosu segmentleri: istemci VARILACAK noktayi gonderir, oyuncu o
+	//     mesafeyi henuz katetmemistir. Fare ile uzaga tiklayan oyuncu tek
+	//     pakette 40-56 m bildirir. 7 Eyl 2026 gunlugundeki yanlis alarm buydu.
+	{
+		CMoveGuard g;
+		auto t = T0;
+		int w  = 0;
+		for (int i = 0; i < 30; i++)
+		{
+			// 12 s'de bir 55 m'lik segment ilan et: gercek hiz 4.6 m/s
+			t += 12000ms;
+			w = std::max(w, static_cast<int>(g.Check(55.0f, 100, t)));
+			// arada normal kucuk duzeltmeler
+			for (int k = 0; k < 4; k++)
+			{
+				t += 300ms;
+				w = std::max(w, static_cast<int>(g.Check(1.4f, 100, t)));
+			}
+		}
+		assert(w == 0);
+	}
+	// 13) Ayni sekil, ama gercekten hizli: 55 m'lik segmentler 3 s arayla
+	//     (~18 m/s) -> yakalanmali.
+	{
+		CMoveGuard g;
+		auto t = T0;
+		int w  = 0;
+		for (int i = 0; i < 30; i++)
+		{
+			t += 3000ms;
+			w = std::max(w, static_cast<int>(g.Check(55.0f, 100, t)));
+			for (int k = 0; k < 4; k++)
+			{
+				t += 200ms;
+				w = std::max(w, static_cast<int>(g.Check(3.0f, 100, t)));
+			}
+		}
+		assert(w > 0);
+		std::printf("uzun segment hilesi: strikes=%d\n", g.TotalStrikes());
+	}
 	std::printf("CheatGuard: tum testler gecti\n");
 	return 0;
 }
