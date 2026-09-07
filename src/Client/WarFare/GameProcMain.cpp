@@ -687,7 +687,9 @@ void CGameProcMain::Render()
 
 								  // NOTE(srmeier): uncomment to render the collision meshes
 #ifdef _DEBUG
-	ACT_WORLD->RenderCollisionWithShape(s_pPlayer->Position()); // 충돌 메쉬 렌더..
+	// OpenKO: carpisma agi tel kafesleri de ayni ayara bagli.
+	if (CN3Base::s_Options.bDebugOverlay)
+		ACT_WORLD->RenderCollisionWithShape(s_pPlayer->Position()); // 충돌 메쉬 렌더..
 #endif
 
 #ifdef _N3_64GRID_
@@ -765,10 +767,13 @@ void CGameProcMain::RenderTarget()
 
 	// NOTE(srmeier): uncomment to render the collision meshes
 #ifdef _DEBUG
-	if (pTarget)
-		pTarget->RenderCollisionMesh();
-	if (s_pPlayer->m_pObjectTarget)
-		s_pPlayer->m_pObjectTarget->RenderCollisionMesh();
+	if (CN3Base::s_Options.bDebugOverlay)
+	{
+		if (pTarget)
+			pTarget->RenderCollisionMesh();
+		if (s_pPlayer->m_pObjectTarget)
+			s_pPlayer->m_pObjectTarget->RenderCollisionMesh();
+	}
 #endif
 }
 
@@ -3940,7 +3945,8 @@ void CGameProcMain::InitUI()
 	OpenKOLoadUI(m_pUIStateBarAndMiniMap, OpenKOUIFile("StateBar", pTbl->szStateBar));
 	m_pUIStateBarAndMiniMap->SetStyle(UISTYLE_FOCUS_UNABLE | UISTYLE_HIDE_UNABLE);
 #ifdef _DEBUG
-	m_pUIStateBarAndMiniMap->SetPos(0, 70); // 디버그 정보 표시때문에 조금 내린다....
+	// OpenKO: durum cubugu yalnizca hata ayiklama katmani acikken asagi kayar.
+	m_pUIStateBarAndMiniMap->SetPos(0, CN3Base::s_Options.bDebugOverlay ? 70 : 0);
 #else
 	m_pUIStateBarAndMiniMap->SetPos(0, 0);
 #endif

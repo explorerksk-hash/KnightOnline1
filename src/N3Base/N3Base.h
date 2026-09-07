@@ -150,6 +150,10 @@ struct __Options
 	bool bWindowMode      = false;
 
 	bool bVSyncEnabled    = true;
+
+	// OpenKO: hata ayiklama katmani (poligon sayaclari, FPS, carpisma tel kafesleri).
+	// Yalnizca Debug derlemesinde etkisi vardir.
+	bool bDebugOverlay    = false;
 };
 
 class CN3Base

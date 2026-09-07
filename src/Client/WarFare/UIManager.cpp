@@ -212,6 +212,10 @@ void CUIManager::Render()
 	*/
 	////////////////////////////////////////////////////////
 #ifdef _DEBUG
+	// OpenKO: hata ayiklama katmani (poligon sayaclari, FPS) varsayilan olarak
+	// kapali. Option.ini icinde [Debug] Overlay=1 ile acilir.
+	if (CN3Base::s_Options.bDebugOverlay)
+	{
 	if (m_pDFont == nullptr)
 	{
 		m_pDFont = new CDFont("굴림", 10);
@@ -253,6 +257,7 @@ void CUIManager::Render()
 		m_pDFont->DrawText(0.0f, 0.0f + i * 18, 0xFFFFFFFF, 0);
 		szDebugs[i].clear();
 	}
+	} // if (bDebugOverlay)
 #endif
 	////////////////////////////////////////////////////////
 

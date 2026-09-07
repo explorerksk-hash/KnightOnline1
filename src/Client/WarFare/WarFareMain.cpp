@@ -66,6 +66,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstanc
 	// OpenKO: arayuz olcegi (yuzde). 0 = ekran yuksekligine gore otomatik,
 	// 100 = orijinal 1024x768 piksel duzeni, 140 = %40 buyuk.
 	CN3Base::s_Options.iUIScalePercent = ini.GetInt("UI", "ScalePercent", 0);
+
+	// OpenKO: Debug derlemesindeki bilgi yazilari ve carpisma tel kafesleri.
+	CN3Base::s_Options.bDebugOverlay = (ini.GetInt("Debug", "Overlay", 0) != 0);
 	if (CN3Base::s_Options.iUIScalePercent != 0
 		&& (CN3Base::s_Options.iUIScalePercent < 100 || CN3Base::s_Options.iUIScalePercent > 250))
 		CN3Base::s_Options.iUIScalePercent = 0;
