@@ -231,6 +231,10 @@ void CGameSocket::Parsing(int /*length*/, char* pData)
 			RecvGateOpen(pData + index);
 			break;
 
+		case AG_SERVER_INFO:
+			RecvServerInfo(pData + index);
+			break;
+
 		default:
 			spdlog::error("GameSocket::Parsing: Unhandled opcode {:02X}", bType);
 			break;
@@ -325,6 +329,23 @@ void CGameSocket::RecvServerConnect(char* pBuf)
 	}
 }
 // ~sungyong 2002.05.22
+
+// Ebenezer, AI sunucusuna baglandiginda tum oyuncu listesini yeniden gonderir.
+// Toplu gonderimin basi ve sonu AG_SERVER_INFO ile isaretlenir; govde paketleri
+// AG_USER_INFO_ALL olarak gelir. Isaretciler icin yapilacak bir sey yok, ancak
+// islenmediklerinde her yeniden baglanmada hata kaydi uretiyorlardi (bug #5).
+void CGameSocket::RecvServerInfo(char* pBuf)
+{
+	int index    = 0;
+	uint8_t type = GetByte(pBuf, index);
+
+	if (type == SERVER_INFO_START)
+		spdlog::info("GameSocket::RecvServerInfo: receiving user information for zoneNo={}", _zoneNo);
+	else if (type == SERVER_INFO_END)
+		spdlog::info("GameSocket::RecvServerInfo: user information received for zoneNo={}", _zoneNo);
+	else
+		spdlog::error("GameSocket::RecvServerInfo: unknown marker type={} zoneNo={}", type, _zoneNo);
+}
 
 void CGameSocket::RecvUserInfo(char* pBuf)
 {

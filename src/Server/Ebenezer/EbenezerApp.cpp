@@ -2022,7 +2022,14 @@ bool EbenezerApp::LoadNoticeData()
 	std::ifstream file(NoticePath, std::ios::in);
 	if (!file)
 	{
-		spdlog::warn("EbenezerApp::LoadNoticeData: failed to open Notice.txt");
+		// OpenKO (bug #3): duyuru dosyasi zorunlu degil. Eksikse sunucu calismaya
+		// devam eder; kullaniciya nereye koyacagini soylemek icin cozulmus tam
+		// yolu yaziyoruz (calisma dizini genelde .exe'nin yani, gameserver.ini'nin
+		// bulundugu klasordur).
+		std::error_code ec;
+		const std::filesystem::path fullPath = std::filesystem::absolute(NoticePath, ec);
+		spdlog::info("EbenezerApp::LoadNoticeData: no notice file, in-game notices disabled [path={}]",
+			(ec ? NoticePath : fullPath).string());
 		return false;
 	}
 

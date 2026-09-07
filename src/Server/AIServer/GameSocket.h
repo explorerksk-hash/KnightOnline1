@@ -34,6 +34,7 @@ public:
 
 	void Parsing(int length, char* pData) override; // recv data parsing
 	void RecvServerConnect(char* pBuf);
+	void RecvServerInfo(char* pBuf);
 
 	bool SetUid(float x, float z, int id, int speed);
 	// GameServer에서 User정보 받는 부분
