@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include <N3Base/N3UITooltip.h>
 #include "GameProcedure.h"
 #include "GameDef.h"
 #include "GameEng.h"
@@ -210,6 +211,8 @@ void CGameProcedure::StaticMemberInit(HINSTANCE hInstance, HWND hWndMain)
 
 	// 툴팁..
 	CN3UIBase::EnableTooltip(pTblUI->szToolTip);
+	// OpenKO: arac ipucu kutusu da arayuzle ayni olcekte olmali.
+	CGameBase::OpenKOScaleUI(CN3UIBase::GetTooltipCtrl());
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// 각 프로시저들 생성

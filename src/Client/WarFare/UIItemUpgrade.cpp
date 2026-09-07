@@ -1,4 +1,5 @@
 ﻿#include "StdAfx.h"
+#include "GameBase.h"
 #include "UIItemUpgrade.h"
 #include "APISocket.h"
 #include "GameProcMain.h"
@@ -676,14 +677,14 @@ bool CUIItemUpgrade::Load(File& file)
 			m_pUITooltipDlg = new CUIImageTooltipDlg();
 
 		m_pUITooltipDlg->Init(this);
-		m_pUITooltipDlg->LoadFromFile(pTbl->szItemInfo);
+		CGameBase::OpenKOLoadUI(m_pUITooltipDlg, pTbl->szItemInfo);
 		m_pUITooltipDlg->InitPos();
 		m_pUITooltipDlg->SetVisible(false);
 
 		if (m_pUIMsgBoxOkCancel == nullptr)
 			m_pUIMsgBoxOkCancel = new CUIMsgBoxOkCancel();
 		m_pUIMsgBoxOkCancel->Init(this);
-		m_pUIMsgBoxOkCancel->LoadFromFile(pTbl->szMsgBoxOkCancel);
+		CGameBase::OpenKOLoadUI(m_pUIMsgBoxOkCancel, pTbl->szMsgBoxOkCancel);
 		m_pUIMsgBoxOkCancel->SetText(fmt::format_text_resource(IDS_ITEM_UPGRADE_CONFIRM));
 		int iX = (m_rcRegion.right + m_rcRegion.left) / 2;
 		int iY = (m_rcRegion.bottom + m_rcRegion.top) / 2;

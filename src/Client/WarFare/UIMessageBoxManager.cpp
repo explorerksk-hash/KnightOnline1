@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UIMessageBoxManager.h"
 #include "GameProcedure.h"
 #include "UIManager.h"
@@ -40,7 +41,7 @@ std::string CUIMessageBoxManager::MessageBoxPost(const std::string& szMsg, const
 
 		pTblUI = CGameBase::s_pTbl_UI.Find(NATION_ELMORAD);
 
-		pMB->LoadFromFile(pTblUI->szMessageBox);
+		CGameBase::OpenKOLoadUI(pMB, pTblUI->szMessageBox);
 		pMB->SetVisible(false);
 		m_UBMs.insert(val_UBM(szMsg, pMB));
 	}

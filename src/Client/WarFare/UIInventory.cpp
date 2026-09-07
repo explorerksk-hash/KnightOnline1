@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UIInventory.h"
 #include "PlayerMySelf.h"
 #include "PacketDef.h"
@@ -378,7 +379,7 @@ void CUIInventory::InitIconWnd(e_UIWND eWnd)
 
 	m_pUITooltipDlg = new CUIImageTooltipDlg();
 	m_pUITooltipDlg->Init(this);
-	m_pUITooltipDlg->LoadFromFile(pTblUI->szItemInfo);
+	CGameBase::OpenKOLoadUI(m_pUITooltipDlg, pTblUI->szItemInfo);
 	m_pUITooltipDlg->InitPos();
 	m_pUITooltipDlg->SetVisible(false);
 

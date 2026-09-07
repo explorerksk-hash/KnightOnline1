@@ -8,6 +8,8 @@
 
 #include "GameDef.h"
 
+class CN3UIBase;
+
 class CGameBase : public CN3Base
 {
 #define ACT_WORLD s_pWorldMgr->GetActiveWorld()
@@ -15,6 +17,19 @@ class CGameBase : public CN3Base
 public:
 	// OpenKO: assets\UI altinda "<name>_OpenKO.uif" varsa onu, yoksa ui.tbl'deki varsayilani dondurur.
 	static std::string OpenKOUIFile(const char* szOpenKOName, const std::string& szDefault);
+
+	// OpenKO: UI olcegi. 1.0 = orijinal 1024x768 piksel duzeni.
+	// Option.ini [UI] Scale ile elle verilebilir; 0 (varsayilan) = ekran yuksekligine
+	// gore otomatik (1080p -> ~1.4).
+	static float OpenKOUIScale();
+
+	// OpenKO: yuklenmis bir UI agacinin tum bolgelerini ve yazi tipi boylarini
+	// OpenKOUIScale() ile olcekler. Agacin sol-ust kosesi yerinde kalir, boylece
+	// yuklemeden sonra gelen SetPos/GetRegion hesaplari aynen calisir.
+	static void OpenKOScaleUI(CN3UIBase* pRoot);
+
+	// OpenKO: LoadFromFile + OpenKOScaleUI (tek adimda).
+	static bool OpenKOLoadUI(CN3UIBase* pUI, const std::string& szFile);
 
 	static CN3TableBase<__TABLE_TEXTS> s_pTbl_Texts;                             // Main string resources
 	static CN3TableBase<__TABLE_ZONE> s_pTbl_Zones;                              // Zone data (filenames and settings)

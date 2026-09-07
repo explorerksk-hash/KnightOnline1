@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UITradeSellBBS.h"
 #include "GameProcMain.h"
 #include "UITradeBBSEditDlg.h"
@@ -89,7 +90,7 @@ bool CUITradeSellBBS::Load(File& file)
 	__TABLE_UI_RESRC* pTblUI = nullptr;
 	pTblUI                   = CGameBase::s_pTbl_UI.Find(NATION_ELMORAD);
 
-	m_MsgBox.LoadFromFile(pTblUI->szMessageBox);
+	CGameBase::OpenKOLoadUI(&m_MsgBox, pTblUI->szMessageBox);
 
 	RECT rt = m_MsgBox.GetRegion();
 	POINT pt;
@@ -97,7 +98,7 @@ bool CUITradeSellBBS::Load(File& file)
 	pt.y = (CN3Base::s_CameraData.vp.Height - (rt.bottom - rt.top)) / 2;
 	m_MsgBox.SetPos(pt.x, pt.y);
 
-	m_UIExplanation.LoadFromFile(pTblUI->szTradeMemolist);
+	CGameBase::OpenKOLoadUI(&m_UIExplanation, pTblUI->szTradeMemolist);
 
 	rt   = m_UIExplanation.GetRegion();
 	pt.x = (CN3Base::s_CameraData.vp.Width - (rt.right - rt.left)) / 2;

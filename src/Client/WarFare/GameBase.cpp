@@ -12,6 +12,10 @@
 #include "PlayerMySelf.h"
 
 #include <N3Base/N3ShapeMgr.h>
+#include <N3Base/N3UIBase.h>
+#include <N3Base/N3UIString.h>
+#include <N3Base/N3UIProgress.h>
+#include <vector>
 
 #include <ranges>
 #include <algorithm>
@@ -737,4 +741,126 @@ std::string CGameBase::OpenKOUIFile(const char* szOpenKOName, const std::string&
 	if (std::filesystem::exists(CN3Base::PathGet() + szRel))
 		return szRel;
 	return szDefault;
+}
+
+// ---------------------------------------------------------------------------
+// OpenKO: cozunurluge gore UI olcegi
+//
+// N3 arayuzu 1024x768 icin sabit pikselle tasarlanmis; 1920x1080'de ekranin
+// ancak yarisini kaplar. Asagidaki iki fonksiyon, .uif dosyalarina hic
+// dokunmadan yuklenen agaci buyutur: tasarim aynen korunur, yalnizca olcek
+// degisir. Dokular normalize UV ile ornedigi icin daha yuksek cozunurluklu
+// bir atlas konuldugunda buyutulmus arayuz de netlesir.
+// ---------------------------------------------------------------------------
+float CGameBase::OpenKOUIScale()
+{
+	static float s_fScale = -1.0f;
+	if (s_fScale > 0.0f)
+		return s_fScale;
+
+	// Option.ini'deki deger yuzde olarak tutulur (140 = 1.40x). 0 -> otomatik.
+	float fScale = static_cast<float>(CN3Base::s_Options.iUIScalePercent) / 100.0f;
+
+	if (fScale <= 0.0f)
+	{
+		const int iH = CN3Base::s_Options.iViewHeight > 0
+			? CN3Base::s_Options.iViewHeight
+			: 768;
+
+		fScale = static_cast<float>(iH) / 768.0f;
+
+		// 0.05'lik adimlara yuvarla ki yarim piksel kaymalari birikmesin.
+		fScale = static_cast<float>(static_cast<int>(fScale * 20.0f + 0.5f)) / 20.0f;
+	}
+
+	if (fScale < 1.0f)
+		fScale = 1.0f;
+	else if (fScale > 2.5f)
+		fScale = 2.5f;
+
+	s_fScale = fScale;
+	return s_fScale;
+}
+
+namespace
+{
+// Agaci gezip her dugumu (ebeveyn once) toplar.
+void OpenKO_CollectUI(CN3UIBase* pNode, std::vector<std::pair<CN3UIBase*, RECT>>& vOut)
+{
+	if (pNode == nullptr)
+		return;
+
+	vOut.emplace_back(pNode, pNode->GetRegion());
+
+	for (CN3UIBase* pChild : pNode->GetChildren())
+		OpenKO_CollectUI(pChild, vOut);
+}
+} // namespace
+
+void CGameBase::OpenKOScaleUI(CN3UIBase* pRoot)
+{
+	if (pRoot == nullptr)
+		return;
+
+	const float fScale = OpenKOUIScale();
+	if (fScale <= 1.0001f && fScale >= 0.9999f)
+		return;
+
+	// Once tum dugumleri ve ORIJINAL bolgelerini topla. Bazi tiplerin
+	// (Image/Button/Static/Area) SetRegion'i cocuklarinin bolgesini de ezdigi
+	// icin olceklemeyi ebeveynden cocuga dogru, onceden alinmis bolgeler
+	// uzerinden uygularız; boylece her dugum en son kendi dogru degerini alir.
+	std::vector<std::pair<CN3UIBase*, RECT>> vNodes;
+	OpenKO_CollectUI(pRoot, vNodes);
+
+	const RECT rcRoot = pRoot->GetRegion();
+	const long lOX    = rcRoot.left;
+	const long lOY    = rcRoot.top;
+
+	auto Scale = [fScale](long lOrigin, long lValue) -> long
+	{
+		return lOrigin + static_cast<long>((lValue - lOrigin) * fScale + 0.5f);
+	};
+
+	for (const auto& [pNode, rcOld] : vNodes)
+	{
+		RECT rcNew;
+		rcNew.left   = Scale(lOX, rcOld.left);
+		rcNew.top    = Scale(lOY, rcOld.top);
+		rcNew.right  = Scale(lOX, rcOld.right);
+		rcNew.bottom = Scale(lOY, rcOld.bottom);
+		pNode->SetRegion(rcNew);
+
+		// Yazilar bolgeyle birlikte buyumezse kutunun icinde kaybolur.
+		// (Static/Edit kendi yazisini cocuk olarak tuttugu icin agac gezerken
+		//  zaten UI_TYPE_STRING olarak karsimiza cikiyor.)
+		if (pNode->UIType() == UI_TYPE_STRING)
+		{
+			CN3UIString* pString = static_cast<CN3UIString*>(pNode);
+			const uint32_t dwHeight = pString->GetFontHeight();
+			if (dwHeight > 0)
+			{
+				const uint32_t dwFlags  = pString->GetFontFlags();
+				uint32_t dwNew          = static_cast<uint32_t>(dwHeight * fScale + 0.5f);
+				if (dwNew < 1)
+					dwNew = 1;
+
+				const std::string szFontName = pString->GetFontName(); // kopya: SetFont ayni tamponu yaziyor
+				pString->SetFont(szFontName, dwNew,
+					(dwFlags & D3DFONT_BOLD) != 0, (dwFlags & D3DFONT_ITALIC) != 0);
+			}
+		}
+	}
+}
+
+bool CGameBase::OpenKOLoadUI(CN3UIBase* pUI, const std::string& szFile)
+{
+	if (pUI == nullptr)
+		return false;
+
+	if (!pUI->LoadFromFile(szFile))
+		return false;
+
+	OpenKOScaleUI(pUI);
+	return true;
 }

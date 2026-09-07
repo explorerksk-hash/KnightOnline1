@@ -12,13 +12,19 @@ def get_tex(assets, name, filt=None):
     key = name.lower()
     if key in _cache:
         return _cache[key]
-    p = os.path.join(assets, name.replace("\\", "/"))
+    rel = name.replace("\\", "/")
+    p = os.path.join(assets, rel)
     if not os.path.exists(p):
-        # buyuk/kucuk harf farkini tolere et
-        d, b = os.path.split(p)
-        for f in os.listdir(d) if os.path.isdir(d) else []:
-            if f.lower() == b.lower():
-                p = os.path.join(d, f); break
+        # buyuk/kucuk harf farkini her yol parcasi icin tolere et (Windows -> Linux)
+        cur = assets
+        for part in rel.split("/"):
+            nxt = os.path.join(cur, part)
+            if not os.path.exists(nxt) and os.path.isdir(cur):
+                for f in os.listdir(cur):
+                    if f.lower() == part.lower():
+                        nxt = os.path.join(cur, f); break
+            cur = nxt
+        p = cur
     im = load_dxt(p) if os.path.exists(p) else None
     if im is not None and filt:
         im = filt(im)

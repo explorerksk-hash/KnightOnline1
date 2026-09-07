@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UIPerTradeDlg.h"
 #include "PacketDef.h"
 #include "LocalInput.h"
@@ -212,7 +213,7 @@ void CUIPerTradeDlg::InitIconWnd(e_UIWND eWnd)
 
 	m_pUITooltipDlg          = new CUIImageTooltipDlg();
 	m_pUITooltipDlg->Init(this);
-	m_pUITooltipDlg->LoadFromFile(pTblUI->szItemInfo);
+	CGameBase::OpenKOLoadUI(m_pUITooltipDlg, pTblUI->szItemInfo);
 	m_pUITooltipDlg->InitPos();
 	m_pUITooltipDlg->SetVisible(FALSE);
 

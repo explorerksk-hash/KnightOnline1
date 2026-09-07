@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UIDead.h"
 #include "PacketDef.h"
 #include "APISocket.h"
@@ -57,7 +58,7 @@ bool CUIDead::Load(File& file)
 		m_pTextTown->SetString(szMsg);
 
 	__TABLE_UI_RESRC* pTblUI = CGameBase::s_pTbl_UI.Find(NATION_ELMORAD);
-	m_MsgBox.LoadFromFile(pTblUI->szMessageBox);
+	CGameBase::OpenKOLoadUI(&m_MsgBox, pTblUI->szMessageBox);
 
 	RECT rt = m_MsgBox.GetRegion();
 	POINT pt;

@@ -139,6 +139,9 @@ struct __Options
 	int iViewDist         = 512;
 	int iEffectSndDist    = 48; // 이펙트 사운드 거리
 
+	// OpenKO: arayuz olcegi, yuzde olarak (0 = ekran yuksekligine gore otomatik).
+	int iUIScalePercent   = 0;
+
 	bool bSndEnable       = false;
 	bool bSndBgmEnable    = false;
 	bool bSndEffectEnable = false;

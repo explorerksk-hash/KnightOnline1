@@ -61,6 +61,11 @@ void CN3UITrackBar::SetRegion(const RECT& Rect)
 	if (m_pBkGndImageRef != nullptr)
 		m_pBkGndImageRef->SetRegion(m_rcRegion); // 배경이미지는 같은 영역으로
 
+	// OpenKO: thumb resmi olmayan bir trackbar .uif'i yuklendiginde bu isaretci
+	// bos kalir; asagisi onu kosulsuz cozuyordu.
+	if (m_pThumbImageRef == nullptr)
+		return;
+
 	RECT rcThumb     = m_pThumbImageRef->GetRegion();
 
 	int iThumbWidth  = rcThumb.right - rcThumb.left;

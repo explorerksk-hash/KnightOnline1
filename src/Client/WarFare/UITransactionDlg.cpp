@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UITransactionDlg.h"
 #include "PacketDef.h"
 #include "LocalInput.h"
@@ -193,13 +194,13 @@ void CUITransactionDlg::InitIconWnd(e_UIWND eWnd)
 
 	m_pUITooltipDlg        = new CUIImageTooltipDlg();
 	m_pUITooltipDlg->Init(this);
-	m_pUITooltipDlg->LoadFromFile(pTbl->szItemInfo);
+	CGameBase::OpenKOLoadUI(m_pUITooltipDlg, pTbl->szItemInfo);
 	m_pUITooltipDlg->InitPos();
 	m_pUITooltipDlg->SetVisible(false);
 
 	m_pUIMsgBoxOkCancel = new CUIMsgBoxOkCancel();
 	m_pUIMsgBoxOkCancel->Init(this);
-	m_pUIMsgBoxOkCancel->LoadFromFile(pTbl->szMsgBoxOkCancel);
+	CGameBase::OpenKOLoadUI(m_pUIMsgBoxOkCancel, pTbl->szMsgBoxOkCancel);
 
 	int iX = (m_rcRegion.right + m_rcRegion.left) / 2;
 	int iY = (m_rcRegion.bottom + m_rcRegion.top) / 2;

@@ -63,6 +63,13 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstanc
 	// NOTE: should we use shadows?
 	CN3Base::s_Options.iUseShadow  = ini.GetInt("Shadow", "Use", 1);
 
+	// OpenKO: arayuz olcegi (yuzde). 0 = ekran yuksekligine gore otomatik,
+	// 100 = orijinal 1024x768 piksel duzeni, 140 = %40 buyuk.
+	CN3Base::s_Options.iUIScalePercent = ini.GetInt("UI", "ScalePercent", 0);
+	if (CN3Base::s_Options.iUIScalePercent != 0
+		&& (CN3Base::s_Options.iUIScalePercent < 100 || CN3Base::s_Options.iUIScalePercent > 250))
+		CN3Base::s_Options.iUIScalePercent = 0;
+
 	// NOTE: what is the screen resolution?
 	CN3Base::s_Options.iViewWidth  = ini.GetInt("ViewPort", "Width", 1024);
 	CN3Base::s_Options.iViewHeight = ini.GetInt("ViewPort", "Height", 768);

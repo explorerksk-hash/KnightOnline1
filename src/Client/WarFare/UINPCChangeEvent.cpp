@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UINPCChangeEvent.h"
 #include "PacketDef.h"
 #include "GameProcMain.h"
@@ -61,7 +62,7 @@ bool CUINPCChangeEvent::Load(File& file)
 	__TABLE_UI_RESRC* pTbl = CGameProcedure::s_pTbl_UI.Find(eNation);
 
 	m_pDlg                 = new CUIPointInitDlg();
-	m_pDlg->LoadFromFile(pTbl->szChangeInitBill);
+	CGameBase::OpenKOLoadUI(m_pDlg, pTbl->szChangeInitBill);
 
 	// 위치 계산 ..
 	int iXPos = 0, iYPos = 0;

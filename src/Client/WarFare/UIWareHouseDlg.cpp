@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "GameBase.h"
 #include "UIWareHouseDlg.h"
 #include "PacketDef.h"
 #include "LocalInput.h"
@@ -185,7 +186,7 @@ void CUIWareHouseDlg::InitIconWnd(e_UIWND eWnd)
 
 	m_pUITooltipDlg        = new CUIImageTooltipDlg();
 	m_pUITooltipDlg->Init(this);
-	m_pUITooltipDlg->LoadFromFile(pTbl->szItemInfo);
+	CGameBase::OpenKOLoadUI(m_pUITooltipDlg, pTbl->szItemInfo);
 	m_pUITooltipDlg->InitPos();
 	m_pUITooltipDlg->SetVisible(false);
 
