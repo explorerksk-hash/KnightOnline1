@@ -2005,6 +2005,7 @@ void CUser::SendMyInfo(int type)
 			}
 		}
 
+		m_moveGuard.Reset();
 		m_pUserData->m_curx = static_cast<float>(x);
 		m_pUserData->m_curz = static_cast<float>(z);
 	}
@@ -2406,6 +2407,7 @@ void CUser::Regene(char* pBuf, int magicid)
 		// Bind Point
 		if (pEvent != nullptr && pEvent->byLife == 1)
 		{
+			m_moveGuard.Reset();
 			m_pUserData->m_curx = m_fWill_x = pEvent->fPosX + x;
 			m_pUserData->m_curz = m_fWill_z = pEvent->fPosZ + z;
 			m_pUserData->m_cury             = 0;

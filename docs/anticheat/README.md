@@ -6,12 +6,16 @@ Kaynak: `src/Server/Ebenezer/CheatGuard.h` (yalnızca STL, birim testli: `tests/
 
 | Bekçi | Nerede | Ne ölçer | Karar |
 |---|---|---|---|
-| `CMoveGuard` | `CUser::MoveProcess` | Paket başına katedilen mesafe vs. hız bütçesi (4.5 m/s × `m_bSpeedAmount` × 1.3 tolerans, 2 sn birikim). 150 m üstü tek sıçrama = anında strike. | 5 strike → `Violation` |
+| `CMoveGuard` | `CUser::MoveProcess` | **8 sn kayan pencerede ortalama hız** vs. izin verilen hız (4.5 m/s × `m_bSpeedAmount` × 1.45 tolerans). 60 m üstü tek sıçrama ortalamaya katılmaz, ayrı sayılır (pencerede 4 sıçrama → strike). | 4 strike → `Violation` |
 | `CPacketGuard` | `CUser::Parsing` | Saniyede paket sayısı (>120) | 3 ardışık saniye → `Violation` |
 
-- Strike'lar 60 sn'de bir azalır; kısa gecikme dalgalanmaları strike üretmez (testte doğrulandı).
-- Sunucunun kendi taşıdığı oyuncu (`ZoneChange`, `Warp`) bekçiyi sıfırlar; diğer yer değiştirmeler
-  (regene, home) için mesafe hem `cur` hem `will` konumuna göre alınır → yanlış alarm yok.
+- Strike'lar 45 sn'de bir azalır.
+- **Neden kayan pencere?** İlk sürüm "mesafe bütçesi" kullanıyordu; paketler toplu geldiğinde
+  normal oyuncu da açık biriktirip yanlış alarm veriyordu (6 Eyl 2026 testinde tek oturumda
+  16 yanlış pozitif). Ortalama hız bu dalgalanmaları yutar; testlere ağır gecikme titremesi
+  ve toplu paket senaryoları eklendi.
+- Sunucunun kendi taşıdığı oyuncu (`ZoneChange`, `Warp`, `Regene`, `SendMyInfo`) bekçiyi sıfırlar;
+  ayrıca mesafe hem `cur` hem `will` konumuna göre alınıp küçüğü kullanılır → yanlış alarm yok.
 - **Karar anahtarı:** `Define.h` → `OPENKO_ANTICHEAT_KICK`. Varsayılan `false` = sadece log
   (`User::MoveProcess: movement anomaly ...`, `User::Parsing: packet flood ...`).
   `true` yapınca hareket ihlalinde `SpeedHackUser()` (hesap BLOCK + bağlantı kesme), paket selinde bağlantı kesme.

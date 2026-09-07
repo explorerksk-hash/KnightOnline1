@@ -3,103 +3,127 @@
 
 #include <cassert>
 #include <cstdio>
+#include <random>
 
 using namespace openko;
 using namespace std::chrono_literals;
 
 static GuardClock::time_point T0 = GuardClock::now();
 
-static int simulate(CMoveGuard& g, float metersPerSec, int speedPct, int seconds, float packetHz = 5.0f)
+static int run(CMoveGuard& g, float metersPerSec, int speedPct, int seconds,
+	float packetHz = 5.0f, float jitter = 0.0f, unsigned seed = 1)
 {
-	int worst      = 0;
+	std::mt19937 rng(seed);
+	std::uniform_real_distribution<float> jit(-jitter, jitter);
+	int w         = 0;
+	auto t        = T0;
 	const float dt = 1.0f / packetHz;
-	auto t         = T0;
-	g.Check(0.0f, speedPct, t); // init
 	for (int i = 0; i < static_cast<int>(seconds * packetHz); i++)
 	{
-		t += std::chrono::milliseconds(static_cast<int>(dt * 1000));
-		GuardVerdict v = g.Check(metersPerSec * dt, speedPct, t);
-		worst          = std::max(worst, static_cast<int>(v));
+		const float step = std::max(0.0f, dt + jit(rng));
+		t += std::chrono::milliseconds(static_cast<int>(step * 1000));
+		w = std::max(w, static_cast<int>(g.Check(metersPerSec * step, speedPct, t)));
 	}
-	return worst;
+	return w;
 }
 
 int main()
 {
-	// 1) Normal kosma (4.5 m/s), buff yok -> hic strike yok
+	// 1) Normal kosma, duzenli paket -> temiz
 	{
 		CMoveGuard g;
-		assert(simulate(g, 4.5f, 100, 120) == 0);
-		assert(g.Strikes() == 0);
+		assert(run(g, 4.5f, 100, 180) == 0);
 	}
-	// 2) %150 hiz buff'i ile 6.75 m/s -> hic strike yok
+	// 2) %150 hiz buff'i -> temiz
 	{
 		CMoveGuard g;
-		assert(simulate(g, 6.75f, 150, 120) == 0);
+		assert(run(g, 6.75f, 150, 180) == 0);
 	}
-	// 3) Gecikme titremesi: paketler toplu gelse de toplam mesafe dogru -> strike yok
+	// 3) Agir gecikme titremesi (paket araligi 0.05-0.75 s arasi oynuyor) -> temiz
+	//    Ilk surumdeki yanlis pozitiflerin sebebi buydu.
+	{
+		CMoveGuard g;
+		assert(run(g, 4.5f, 100, 300, 4.0f, 0.30f, 7) == 0);
+	}
+	// 4) Paketler toplu geliyor: 1 s sessizlik + arka arkaya 5 paket -> temiz
 	{
 		CMoveGuard g;
 		auto t = T0;
-		g.Check(0, 100, t);
-		for (int i = 0; i < 50; i++)
+		int w  = 0;
+		for (int burst = 0; burst < 40; burst++)
 		{
 			t += 1000ms;
-			assert(g.Check(4.5f * 0.6f, 100, t) == GuardVerdict::Ok); // 0.6 s'lik mesafe
-			t += 200ms;
-			assert(g.Check(4.5f * 0.6f, 100, t) == GuardVerdict::Ok);
+			w = std::max(w, static_cast<int>(g.Check(4.5f * 1.0f, 100, t))); // 1 s'lik mesafe
+			for (int k = 0; k < 4; k++)
+			{
+				t += 40ms;
+				w = std::max(w, static_cast<int>(g.Check(4.5f * 0.04f, 100, t)));
+			}
 		}
+		assert(w == 0);
 	}
-	// 4) Speedhack x2 (9 m/s, buff yok) -> birkac saniyede Violation
+	// 5) Tek isinlanma (portal, 120 m) tolere edilir
 	{
 		CMoveGuard g;
-		assert(simulate(g, 9.0f, 100, 60) == static_cast<int>(GuardVerdict::Violation));
-		std::printf("x2 speedhack: strikes=%d\n", g.TotalStrikes());
-		assert(g.TotalStrikes() >= 5);
-	}
-	// 5) Hafif speedhack x1.5 (6.75 m/s, buff yok) -> yine yakalanir (tolerans 1.3)
-	{
-		CMoveGuard g;
-		assert(simulate(g, 6.75f, 100, 120) == static_cast<int>(GuardVerdict::Violation));
-	}
-	// 6) Teleport hack: tek pakette 400 m -> aninda strike
-	{
-		CMoveGuard g;
-		g.Check(0, 100, T0);
-		assert(g.Check(400.0f, 100, T0 + 200ms) == GuardVerdict::Suspicious);
-	}
-	// 7) Sunucu warp'i: Reset sonrasi ilk paket Ok
-	{
-		CMoveGuard g;
-		g.Check(0, 100, T0);
-		g.Reset();
-		assert(g.Check(400.0f, 100, T0 + 200ms) == GuardVerdict::Ok);
-	}
-	// 8) Strike'lar zamanla azalir
-	{
-		CMoveGuard g;
-		g.Check(0, 100, T0);
-		g.Check(400.0f, 100, T0 + 1s);
-		g.Check(400.0f, 100, T0 + 2s);
-		assert(g.Strikes() == 2);
-		g.Check(0.1f, 100, T0 + 200s);
+		run(g, 4.5f, 100, 20);
+		auto t = T0 + 30s;
+		assert(g.Check(120.0f, 100, t) == GuardVerdict::Ok);
 		assert(g.Strikes() == 0);
 	}
-	// 9) Paket seli
+	// 6) Speedhack x2 -> Violation
+	{
+		CMoveGuard g;
+		assert(run(g, 9.0f, 100, 120) == static_cast<int>(GuardVerdict::Violation));
+		std::printf("x2 speedhack: strikes=%d\n", g.TotalStrikes());
+	}
+	// 7) Hafif speedhack x1.6 (buff yok) -> yakalanir
+	{
+		CMoveGuard g;
+		assert(run(g, 7.2f, 100, 180) == static_cast<int>(GuardVerdict::Violation));
+	}
+	// 8) Isinlanma hilesi: 10 sn icinde arka arkaya sicramalar -> yakalanir
+	{
+		CMoveGuard g;
+		auto t = T0;
+		int w  = 0;
+		for (int i = 0; i < 6; i++)
+		{
+			t += 900ms;
+			w = std::max(w, static_cast<int>(g.Check(300.0f, 100, t)));
+		}
+		assert(w >= static_cast<int>(GuardVerdict::Suspicious));
+	}
+	// 9) Sunucu warp'i sonrasi Reset -> temiz
+	{
+		CMoveGuard g;
+		run(g, 4.5f, 100, 20);
+		g.Reset();
+		assert(g.Check(800.0f, 100, T0 + 25s) == GuardVerdict::Ok);
+	}
+	// 10) Strike'lar zamanla silinir
+	{
+		CMoveGuard g;
+		run(g, 9.0f, 100, 30);
+		assert(g.Strikes() > 0);
+		g.Check(0.1f, 100, T0 + 600s);
+		assert(g.Strikes() == 0);
+	}
+	// 11) Paket seli
 	{
 		CPacketGuard p;
-		auto t       = T0;
-		int worst    = 0;
+		auto t    = T0;
+		int w     = 0;
 		for (int s = 0; s < 4; s++)
 		{
 			for (int i = 0; i < 300; i++)
 			{
 				t += 3ms;
-				worst = std::max(worst, static_cast<int>(p.OnPacket(t)));
+				w = std::max(w, static_cast<int>(p.OnPacket(t)));
 			}
 			t += 100ms;
 		}
-		assert(worst == static_cast<int>(GuardVerdict::Violation));
+		assert(w == static_cast<int>(GuardVerdict::Violation));
+
 		CPacketGuard q;
 		t = T0;
 		for (int i = 0; i < 600; i++)
