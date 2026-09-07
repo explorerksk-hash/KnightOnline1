@@ -7,6 +7,8 @@
 #include "RoomEvent.h"
 #include "ZoneEventThread.h"
 
+#include <map>
+
 #include <argparse/argparse.hpp>
 #include <FileIO/FileReader.h>
 
@@ -628,6 +630,31 @@ bool AIServerApp::CreateNpcThread()
 
 	if (_zoneEventThread == nullptr)
 		_zoneEventThread = new ZoneEventThread();
+
+	// OpenKO teshis: hangi bolgede kac NPC var? "Bu haritada mob yok" sikayetlerinde
+	// sorunun kodda mi yoksa K_NPCPOS verisinde mi oldugunu tek bakista gosterir.
+	{
+		// mob = canavarlar (e_NpcType < 10: monster/boss/dungeon/trap)
+		// npc = muhafiz, tuccar, kapi, heykel vb. (e_NpcType >= 10)
+		std::map<int, std::pair<int, int>> perZone;
+		for (const auto& [_, pNpc] : _npcMap)
+		{
+			if (pNpc == nullptr)
+				continue;
+
+			auto& entry = perZone[pNpc->m_sCurZone];
+			if (pNpc->m_tNpcType < NPC_REFUGEE)
+				entry.first++;
+			else
+				entry.second++;
+		}
+
+		std::string szBreakdown;
+		for (const auto& [zoneId, counts] : perZone)
+			szBreakdown += fmt::format("[z{} mob={} npc={}] ", zoneId, counts.first, counts.second);
+
+		spdlog::info("AIServerApp::CreateNpcThread: per-zone spawn counts: {}", szBreakdown);
+	}
 
 	spdlog::info("AIServerApp::CreateNpcThread: Monsters/NPCs loaded: {}", _totalNpcCount);
 	return true;
