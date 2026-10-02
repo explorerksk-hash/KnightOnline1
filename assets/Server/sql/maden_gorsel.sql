@@ -1,26 +1,28 @@
--- Maden gorselleri v2: CZ merkezine cevher damari nesneleri
+-- Maden gorselleri v3 - model dosyalari dogrulandi
 -- Merkez 1014.9, 992.7  |  tasarim: docs/design/maden.md
 --
--- sPid degerleri Data/NPC_Looks.tbl'den dogrulandi. Model begenilmezse
--- asagidaki sPid'i degistirip SQL'i tekrar calistirmak yeterli:
---   30090 npc_dong_gold      altin cevher yigini
---   30094 el_dong_gold       altin cevher (El Morad)
---   30091 obj_ka_crystal01   kristal (Karus)
---   30092 obj_el_crystal02   kristal (El Morad)
---   24000 obj_kaa_kugglin_stone  kaya
---   30020 obj_war_clanstone      klan tasi
+-- v2'de npc_dong_gold (30090) kullanilmisti: NPC_Looks.tbl o modelin govdesi icin
+-- item\obj_dunb_key01_body00.n2cpart diyor ama o dosya client'ta YOK (dogrusu .n3cpart).
+-- Bu yuzden iskelet yukleniyor, mesh yuklenmiyordu: etiket goruluyor, model gorunmuyordu.
+--
+-- Asagidakilerin .n3joint + .n3cpart + .n3cskins + .dxt zincirinin tamami dogrulandi:
+--   25002 obj_dunb_key01      tas sutun      mesh 56KB
+--   30020 obj_war_clanstone   tas anit       mesh 24KB
+--   30091 obj_ka_crystal01    kristal        mesh  5KB (kucuk, zayif gorunebilir)
+--   30092 obj_el_crystal02    kristal (EL)
+-- Model degistirmek icin asagidaki sPid'i degistirip bu dosyayi tekrar calistir.
 SET NOCOUNT ON;
 
 DELETE FROM dbo.K_NPC    WHERE sSid   IN (9100, 9101);
 DELETE FROM dbo.K_NPCPOS WHERE ZoneID = 201 AND NpcID IN (9100, 9101);
 
--- byType=46 (NPC_GENERIC): tamamen dekor, vurulmaz ve tiklanmaz.
+-- byType=46 (NPC_GENERIC): tamamen dekor; vurulmaz, tiklanmaz.
 INSERT INTO dbo.K_NPC (sSid, strName, sPid,sSize,iWeapon1,iWeapon2,byGroup,byActType,byType,byFamily,byRank,byTitle,iSellingGroup,sLevel,iExp,iLoyalty,iHpPoint,sMpPoint,sAtk,sAc,sHitRate,sEvadeRate,sDamage,sAttackDelay,bySpeed1,bySpeed2,sStandtime,iMagic1,iMagic2,iMagic3,sFireR,sColdR,sLightningR,sMagicR,sDiseaseR,sPoisonR,sLightR,sBulk,byAttackRange,bySearchRange,byTracingRange,iMoney,sItem,byDirectAttack,byMagicAttack,byMoneyType)
-  VALUES (9100, N'Cevher Damari', 30090, 110, 0,0,1,0,46,1,1,1,0,60,0,0,10000,0,0,360,194,194,0,1000,0,0,1000,0,0,0,250,250,250,250,250,250,250,100,5,5,5,0,0,0,0,0);  -- npc_dong_gold
+  VALUES (9100, N'Cevher Damari', 25002, 110, 0,0,1,0,46,1,1,1,0,60,0,0,10000,0,0,360,194,194,0,1000,0,0,1000,0,0,0,250,250,250,250,250,250,250,100,5,5,5,0,0,0,0,0);  -- obj_dunb_key01 - mesh 56KB, doku 87KB
 INSERT INTO dbo.K_NPC (sSid, strName, sPid,sSize,iWeapon1,iWeapon2,byGroup,byActType,byType,byFamily,byRank,byTitle,iSellingGroup,sLevel,iExp,iLoyalty,iHpPoint,sMpPoint,sAtk,sAc,sHitRate,sEvadeRate,sDamage,sAttackDelay,bySpeed1,bySpeed2,sStandtime,iMagic1,iMagic2,iMagic3,sFireR,sColdR,sLightningR,sMagicR,sDiseaseR,sPoisonR,sLightR,sBulk,byAttackRange,bySearchRange,byTracingRange,iMoney,sItem,byDirectAttack,byMagicAttack,byMoneyType)
-  VALUES (9101, N'Buyuk Cevher Damari', 30091, 170, 0,0,1,0,46,1,1,1,0,60,0,0,10000,0,0,360,194,194,0,1000,0,0,1000,0,0,0,250,250,250,250,250,250,250,100,5,5,5,0,0,0,0,0);  -- obj_ka_crystal01
+  VALUES (9101, N'Buyuk Cevher Damari', 30020, 170, 0,0,1,0,46,1,1,1,0,60,0,0,10000,0,0,360,194,194,0,1000,0,0,1000,0,0,0,250,250,250,250,250,250,250,100,5,5,5,0,0,0,0,0);  -- obj_war_clanstone - mesh 24KB, doku 87KB
 
-INSERT INTO dbo.K_NPCPOS (ZoneID,NpcID,ActType,RegenType,DungeonFamily,SpecialType,TrapNumber,LeftX,TopZ,RightX,BottomZ,LimitMinX,LimitMinZ,LimitMaxX,LimitMaxZ,NumNPC,RegTime,byDirection,DotCnt) VALUES (201,9101,100,0,0,0,0,1015,994,1016,993,1015,993,1016,994,1,60,0,0);  -- merkez-kristal
+INSERT INTO dbo.K_NPCPOS (ZoneID,NpcID,ActType,RegenType,DungeonFamily,SpecialType,TrapNumber,LeftX,TopZ,RightX,BottomZ,LimitMinX,LimitMinZ,LimitMaxX,LimitMaxZ,NumNPC,RegTime,byDirection,DotCnt) VALUES (201,9101,100,0,0,0,0,1015,994,1016,993,1015,993,1016,994,1,60,0,0);  -- merkez
 INSERT INTO dbo.K_NPCPOS (ZoneID,NpcID,ActType,RegenType,DungeonFamily,SpecialType,TrapNumber,LeftX,TopZ,RightX,BottomZ,LimitMinX,LimitMinZ,LimitMaxX,LimitMaxZ,NumNPC,RegTime,byDirection,DotCnt) VALUES (201,9100,100,0,0,0,0,1049,994,1050,993,1049,993,1050,994,1,60,0,0);  -- damar-34
 INSERT INTO dbo.K_NPCPOS (ZoneID,NpcID,ActType,RegenType,DungeonFamily,SpecialType,TrapNumber,LeftX,TopZ,RightX,BottomZ,LimitMinX,LimitMinZ,LimitMaxX,LimitMaxZ,NumNPC,RegTime,byDirection,DotCnt) VALUES (201,9100,100,0,0,0,0,1039,1018,1040,1017,1039,1017,1040,1018,1,60,0,0);  -- damar-34
 INSERT INTO dbo.K_NPCPOS (ZoneID,NpcID,ActType,RegenType,DungeonFamily,SpecialType,TrapNumber,LeftX,TopZ,RightX,BottomZ,LimitMinX,LimitMinZ,LimitMaxX,LimitMaxZ,NumNPC,RegTime,byDirection,DotCnt) VALUES (201,9100,100,0,0,0,0,1015,1028,1016,1027,1015,1027,1016,1028,1,60,0,0);  -- damar-34
@@ -38,4 +40,5 @@ INSERT INTO dbo.K_NPCPOS (ZoneID,NpcID,ActType,RegenType,DungeonFamily,SpecialTy
 INSERT INTO dbo.K_NPCPOS (ZoneID,NpcID,ActType,RegenType,DungeonFamily,SpecialType,TrapNumber,LeftX,TopZ,RightX,BottomZ,LimitMinX,LimitMinZ,LimitMaxX,LimitMaxZ,NumNPC,RegTime,byDirection,DotCnt) VALUES (201,9100,100,0,0,0,0,1041,933,1042,932,1041,932,1042,933,1,60,0,0);  -- damar-66
 INSERT INTO dbo.K_NPCPOS (ZoneID,NpcID,ActType,RegenType,DungeonFamily,SpecialType,TrapNumber,LeftX,TopZ,RightX,BottomZ,LimitMinX,LimitMinZ,LimitMaxX,LimitMaxZ,NumNPC,RegTime,byDirection,DotCnt) VALUES (201,9100,100,0,0,0,0,1076,969,1077,968,1076,968,1077,969,1,60,0,0);  -- damar-66
 
+SELECT sSid, strName, sPid, sSize FROM dbo.K_NPC WHERE sSid IN (9100,9101);
 SELECT COUNT(*) AS yerlestirilen FROM dbo.K_NPCPOS WHERE ZoneID=201 AND NpcID IN (9100,9101);
