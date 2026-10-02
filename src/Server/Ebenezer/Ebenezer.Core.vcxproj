@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -170,6 +170,7 @@
     <ClCompile Include="MagicProcess.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Npc.cpp" />
+    <ClCompile Include="Mine.cpp" />
     <ClCompile Include="OperationMessage.cpp" />
     <ClCompile Include="RecvUDPThread.cpp" />
     <ClCompile Include="EbenezerResourceFormatter.cpp" />
@@ -202,6 +203,7 @@
     <ClInclude Include="MagicProcess.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Npc.h" />
+    <ClInclude Include="Mine.h" />
     <ClInclude Include="OperationMessage.h" />
     <ClInclude Include="RecvUDPThread.h" />
     <ClInclude Include="Region.h" />

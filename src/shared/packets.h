@@ -131,6 +131,7 @@ enum e_GameOpcode : uint8_t
 	WIZ_SKILLDATA           = 0x79,
 	WIZ_PROGRAMCHECK        = 0x7A,
 	WIZ_BIFROST             = 0x7B,
+	WIZ_MINE                = 0x7C, // OpenKO: maden sistemi (docs/design/maden.md)
 	WIZ_SERVER_KILL         = 0x7F,
 
 	// NOTE(srmeier): testing this debug string functionality

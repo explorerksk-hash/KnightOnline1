@@ -108,6 +108,9 @@ public:
 	void MarketBBSSellDelete(int16_t index);
 	void MarketBBSBuyDelete(int16_t index);
 	void MarketBBSTimeCheck();
+
+	// OpenKO maden: damar tick'i (docs/design/maden.md)
+	void MineTick();
 	int GetKnightsAllMembers(int knightsindex, char* temp_buff, int& buff_index, int type = 0);
 	bool LoadKnightsSiegeWarfareTable();
 	bool LoadAllKnightsUserData();
@@ -386,6 +389,7 @@ private:
 	std::unique_ptr<TimerThread> _aliveTimeThread;
 	std::unique_ptr<TimerThread> _marketBBSTimeThread;
 	std::unique_ptr<TimerThread> _packetCheckThread;
+	std::unique_ptr<TimerThread> _mineThread;
 
 	std::unique_ptr<ReadQueueThread> _readQueueThread;
 

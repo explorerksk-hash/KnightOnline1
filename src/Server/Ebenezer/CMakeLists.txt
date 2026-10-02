@@ -40,6 +40,8 @@ add_library(Ebenezer.Core
   Map.h
   Npc.cpp
   Npc.h
+  Mine.cpp
+  Mine.h
   OperationMessage.cpp
   OperationMessage.h
   pch.h

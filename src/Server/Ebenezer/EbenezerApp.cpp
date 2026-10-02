@@ -15,6 +15,7 @@
 #include <shared/packets.h>
 #include <shared/StringUtils.h>
 #include <shared/TimerThread.h>
+#include "Mine.h"
 
 #include <db-library/ConnectionManager.h>
 #include <db-library/RecordSetLoader_STLMap.h>
@@ -152,6 +153,10 @@ EbenezerApp::EbenezerApp(EbenezerLogger& logger) :
 	_packetCheckThread = std::make_unique<TimerThread>(
 		6min, std::bind(&EbenezerApp::WritePacketLog, this));
 
+	// OpenKO maden: damar tick'i. Mine::TICK_SECONDS ile ayni olmali.
+	_mineThread = std::make_unique<TimerThread>(
+		std::chrono::seconds(Mine::TICK_SECONDS), std::bind(&EbenezerApp::MineTick, this));
+
 	_readQueueThread = std::make_unique<EbenezerReadQueueThread>();
 }
 
@@ -206,6 +211,15 @@ EbenezerApp::~EbenezerApp()
 		_packetCheckThread->shutdown();
 
 		spdlog::info("EbenezerApp::~EbenezerApp: packet check thread stopped.");
+	}
+
+	if (_mineThread != nullptr)
+	{
+		spdlog::info("EbenezerApp::~EbenezerApp: Shutting down mine thread...");
+
+		_mineThread->shutdown();
+
+		spdlog::info("EbenezerApp::~EbenezerApp: mine thread stopped.");
 	}
 
 	if (_readQueueThread != nullptr)
